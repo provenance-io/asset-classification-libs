@@ -21,7 +21,9 @@ jobs:
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Store version for later use.
+          # Echo derived version for reference
+          echo "Using version: $VERSION"
+          # Store version for later use
           echo "::set-env name=VERSION::$VERSION" >> $GITHUB_ENV
 
       - name: Set up JDK 11
@@ -43,7 +45,7 @@ jobs:
           echo -n "${{ secrets.OSSRH_GPG_SECRET_KEY }}" | base64 --decode > $GITHUB_WORKSPACE/release.gpg
 
       - name: Publish to Maven Central
-        if: github.event.name == 'release'
+        if: github.event_name == 'release'
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
