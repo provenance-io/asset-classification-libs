@@ -41,26 +41,13 @@ subprojects {
         withJavadocJar()
     }
 
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict", "-Xopt-in=kotlin.RequiresOptIn")
-            jvmTarget = "11"
-        }
-    }
-
-
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
     val artifactName = name
     val artifactVersion = projectVersion.toString()
 
     configure<PublishingExtension> {
         publications {
             create<MavenPublication>("maven") {
-                groupId = project.group.toString()
+                groupId = projectGroup.toString()
                 artifactId = artifactName
                 version = artifactVersion
 
@@ -96,28 +83,6 @@ subprojects {
 
         configure<SigningExtension> {
             sign(publications["maven"])
-        }
-    }
-}
-
-object Repos {
-    private object sonatype {
-        const val snapshots = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-        const val releases = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-    }
-
-    fun RepositoryHandler.sonatypeOss(projectVersion: String): MavenArtifactRepository {
-        val murl =
-            if (projectVersion == "1.0-SNAPSHOT") sonatype.snapshots
-            else sonatype.releases
-
-        return maven {
-            name = "Sonatype"
-            url = URI.create(murl)
-            credentials {
-                username = System.getenv("OSSRH_USERNAME")
-                password = System.getenv("OSSRH_PASSWORD")
-            }
         }
     }
 }

@@ -1,7 +1,3 @@
-plugins {
-    id("core-config")
-}
-
 dependencies {
     api(project(":client"))
 

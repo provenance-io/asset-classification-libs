@@ -32,6 +32,6 @@ configure<JavaPluginExtension> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    // Always re-run tests
-    outputs.upToDateWhen { false }
+//    // Always re-run tests
+//    outputs.upToDateWhen { false }
 }
