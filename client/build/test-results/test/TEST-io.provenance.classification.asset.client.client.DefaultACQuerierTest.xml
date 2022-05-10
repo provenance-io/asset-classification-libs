@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.provenance.classification.asset.client.client.DefaultACQuerierTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2022-05-10T00:00:14" hostname="F0179.local" time="5.212">
+  <properties/>
+  <testcase name="testQueryAssetDefinitionByAssetTypeOrNull()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="4.459"/>
+  <testcase name="testQueryAssetScopeAttributeByScopeAddress()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.544"/>
+  <testcase name="testQueryAssetDefinitionByAssetType()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.022"/>
+  <testcase name="testQueryAssetDefinitionByScopeSpecAddress()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.02"/>
+  <testcase name="testQueryAssetDefinitions()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.033"/>
+  <testcase name="testQueryContractState()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.023"/>
+  <testcase name="testQueryAssetScopeAttributeByScopeAddressOrNull()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.02"/>
+  <testcase name="testQueryContractVersion()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.021"/>
+  <testcase name="testQueryAssetScopeAttributeByAssetUuid()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.033"/>
+  <testcase name="testQueryAssetScopeAttributeByAssetUuidOrNull()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.013"/>
+  <testcase name="testQueryAssetDefinitionByScopeSpecAddressOrNull()" classname="io.provenance.classification.asset.client.client.DefaultACQuerierTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

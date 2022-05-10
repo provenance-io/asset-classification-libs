@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.provenance.classification.asset.client.util.ACMetadataKeyUtilTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2022-05-10T00:00:20" hostname="F0179.local" time="0.929">
+  <properties/>
+  <testcase name="testKeyUtilProducesUsableOutput()" classname="io.provenance.classification.asset.client.util.ACMetadataKeyUtilTest" time="0.929"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
