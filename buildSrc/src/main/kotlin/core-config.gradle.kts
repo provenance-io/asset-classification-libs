@@ -30,8 +30,8 @@ configure<JavaPluginExtension> {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
-//    // Always re-run tests
-//    outputs.upToDateWhen { false }
+    // Always re-run tests
+    outputs.upToDateWhen { false }
 }
