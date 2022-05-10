@@ -1,3 +1,7 @@
+plugins {
+    id("core-config")
+}
+
 dependencies {
     listOf(
         // Bundles
