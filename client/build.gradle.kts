@@ -1,7 +1,3 @@
-plugins {
-    id("com.adarshr.test-logger")
-}
-
 dependencies {
     listOf(
         // Bundles

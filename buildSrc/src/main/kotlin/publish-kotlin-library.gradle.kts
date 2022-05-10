@@ -25,8 +25,6 @@ configure<io.github.gradlenexus.publishplugin.NexusPublishExtension> {
             stagingProfileId.set("3180ca260b82a7") // prevents querying for the staging profile id, performance optimization
         }
     }
-    // 3180ca260b82a7
-    // 3180ca260b82a7
 }
 
 subprojects {

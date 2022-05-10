@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     id("java-library")
+    id("com.adarshr.test-logger")
 }
 
 group = rootProject.group
