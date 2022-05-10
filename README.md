@@ -1,6 +1,21 @@
 # Asset Classification Libs
 This project contains libraries for communicating with the [Asset Classification Smart Contract](https://github.com/provenance-io/asset-classification-smart-contract)
 
+## Status
+[![Latest Release][release-badge]][release-latest]
+[![Maven Central][maven-badge]][maven-url]
+[![Apache 2.0 License][license-badge]][license-url]
+[![LOC][loc-badge]][loc-report]
+
+[license-badge]: https://img.shields.io/github/license/provenance-io/asset-classification-libs.svg
+[license-url]: https://github.com/provenance-io/asset-classification-libs/blob/main/LICENSE
+[maven-badge]: https://maven-badges.herokuapp.com/maven-central/io.provenance.classification.asset/client/badge.svg
+[maven-url]: https://maven-badges.herokuapp.com/maven-central/io.provenance.classification.asset/client
+[release-badge]: https://img.shields.io/github/tag/provenance-io/asset-classification-libs.svg
+[release-latest]: https://github.com/provenance-io/asset-classification-libs/releases/latest
+[loc-badge]: https://tokei.rs/b1/github/provenance-io/asset-classification-libs
+[loc-report]: https://github.com/provenance-io/asset-classification-libs
+
 ## Importing the Client and/or Verifier
 - The [client](client) library can be downloaded via: `io.provenance.classification.asset:client:<latest-release-version>`
 - The [verifier](verifier) library can be downloaded via: `io.provenance.classification.asset:verifier:<latest-release-version>`
