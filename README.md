@@ -2,8 +2,8 @@
 This project contains libraries for communicating with the [Asset Classification Smart Contract](https://github.com/provenance-io/asset-classification-smart-contract)
 
 ## Importing the Client and/or Verifier
-- The [client](client) library can be downloaded via: `io.provenance.classification.asset:client:main-+`
-- The [verifier](verifier) library can be downloaded via: `io.provenance.classification.asset:verifier:main-+`
+- The [client](client) library can be downloaded via: `io.provenance.classification.asset:client:<latest-release-version>`
+- The [verifier](verifier) library can be downloaded via: `io.provenance.classification.asset:verifier:<latest-release-version>`
 
 *IMPORTANT:* The client and verifier both bundle their dependencies as API dependencies, and will overwrite or be 
 overwritten by an implementing project.  This was done purposefully, because the versioning on the various Provenance
