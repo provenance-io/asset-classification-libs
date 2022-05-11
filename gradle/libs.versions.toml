@@ -12,7 +12,7 @@ provenanceClient = "1.0.5"
 provenanceEventStream = "0.6.0"
 provenanceHdWallet = "0.1.15"
 provenanceProto = "1.9.0"
-provenanceScope = "0.4.9"
+provenanceScope = "0.5.1"
 scarlet = "0.1.12"
 
 [libraries]
