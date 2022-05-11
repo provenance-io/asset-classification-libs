@@ -41,7 +41,9 @@ subprojects {
         withJavadocJar()
     }
 
-    val artifactName = name
+    // Add an "ac-" prefix to each library's name.  This will prevent jar collisions with other libraries that have
+    // ambiguously-named resources like this one, eg: client-1.0.0.jar == bad
+    val artifactName = "ac-$name"
     val artifactVersion = projectVersion.toString()
 
     configure<PublishingExtension> {

@@ -9,16 +9,16 @@ This project contains libraries for communicating with the [Asset Classification
 
 [license-badge]: https://img.shields.io/github/license/provenance-io/asset-classification-libs.svg
 [license-url]: https://github.com/provenance-io/asset-classification-libs/blob/main/LICENSE
-[maven-badge]: https://maven-badges.herokuapp.com/maven-central/io.provenance.classification.asset/client/badge.svg
-[maven-url]: https://maven-badges.herokuapp.com/maven-central/io.provenance.classification.asset/client
+[maven-badge]: https://maven-badges.herokuapp.com/maven-central/io.provenance.classification.asset/ac-client/badge.svg
+[maven-url]: https://maven-badges.herokuapp.com/maven-central/io.provenance.classification.asset/ac-client
 [release-badge]: https://img.shields.io/github/tag/provenance-io/asset-classification-libs.svg
 [release-latest]: https://github.com/provenance-io/asset-classification-libs/releases/latest
 [loc-badge]: https://tokei.rs/b1/github/provenance-io/asset-classification-libs
 [loc-report]: https://github.com/provenance-io/asset-classification-libs
 
 ## Importing the Client and/or Verifier
-- The [client](client) library can be downloaded via: `io.provenance.classification.asset:client:<latest-release-version>`
-- The [verifier](verifier) library can be downloaded via: `io.provenance.classification.asset:verifier:<latest-release-version>`
+- The [client](client) library can be downloaded via: `io.provenance.classification.asset:ac-client:<latest-release-version>`
+- The [verifier](verifier) library can be downloaded via: `io.provenance.classification.asset:ac-verifier:<latest-release-version>`
 
 *IMPORTANT:* The client and verifier both bundle their dependencies as API dependencies, and will overwrite or be 
 overwritten by an implementing project.  This was done purposefully, because the versioning on the various Provenance
