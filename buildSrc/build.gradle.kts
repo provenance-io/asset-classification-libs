@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin", "kotlin-gradle-plugin", "1.6.10")
+    implementation("org.jetbrains.kotlin", "kotlin-gradle-plugin", "1.6.21")
     implementation("io.github.gradle-nexus", "publish-plugin", "1.1.0")
     implementation("com.adarshr", "gradle-test-logger-plugin", "3.2.0")
 }
