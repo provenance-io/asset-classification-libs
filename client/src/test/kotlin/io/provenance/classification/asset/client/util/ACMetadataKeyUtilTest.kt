@@ -1,7 +1,7 @@
 package io.provenance.classification.asset.client.util
 
 import io.provenance.classification.asset.client.provenance.ProvenanceAccountDetail
-import io.provenance.client.wallet.NetworkType
+import io.provenance.classification.asset.client.provenance.ProvenanceNetworkType
 import io.provenance.client.wallet.fromMnemonic
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.jupiter.api.BeforeEach
@@ -22,13 +22,13 @@ class ACMetadataKeyUtilTest {
         val mnemonic = "surge update round quantum script shed tissue maple minimum raw movie below prevent appear dice bullet pyramid tragic glue globe egg object era safe"
         // This uses wallet signer to verify that the correct address will be generated
         val addressFromWalletSigner = fromMnemonic(
-            networkType = NetworkType.TESTNET,
+            networkType = ProvenanceNetworkType.TESTNET.toNetworkType(),
             mnemonic = mnemonic,
             isMainNet = false,
         ).address()
         val privateKeyEncoded = ACMetadataKeyUtil.getBase64EncodedPrivateKey(
             mnemonic = mnemonic,
-            networkType = NetworkType.TESTNET,
+            networkType = ProvenanceNetworkType.TESTNET,
         )
         val addressFromAccountDetail = ProvenanceAccountDetail.fromBase64PrivateKey(privateKeyEncoded, mainNet = false).bech32Address
         assertEquals(

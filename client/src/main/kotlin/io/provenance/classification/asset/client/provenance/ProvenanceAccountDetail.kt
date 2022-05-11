@@ -2,9 +2,7 @@ package io.provenance.classification.asset.client.provenance
 
 import com.google.common.io.BaseEncoding
 import io.provenance.classification.asset.client.extension.base64EncodeString
-import io.provenance.classification.asset.client.extension.isMainNet
 import io.provenance.classification.asset.client.util.ACMetadataKeyUtil
-import io.provenance.client.wallet.NetworkType
 import io.provenance.scope.encryption.ecies.ECUtils
 import io.provenance.scope.encryption.model.DirectKeyRef
 import io.provenance.scope.encryption.model.KeyRef
@@ -49,7 +47,7 @@ data class ProvenanceAccountDetail(
                 privateKeyEncoded = privateKeyEncoded,
             )
 
-        fun fromMnemonic(mnemonic: String, networkType: NetworkType): ProvenanceAccountDetail =
+        fun fromMnemonic(mnemonic: String, networkType: ProvenanceNetworkType): ProvenanceAccountDetail =
             fromBase64PrivateKey(
                 privateKeyEncoded = ACMetadataKeyUtil.getBase64EncodedPrivateKey(mnemonic, networkType),
                 mainNet = networkType.isMainNet(),

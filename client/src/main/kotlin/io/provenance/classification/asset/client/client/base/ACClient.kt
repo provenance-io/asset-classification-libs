@@ -7,8 +7,8 @@ import io.provenance.classification.asset.client.client.impl.DefaultACClient
 import io.provenance.classification.asset.client.client.impl.DefaultACExecutor
 import io.provenance.classification.asset.client.client.impl.DefaultACQuerier
 import io.provenance.client.grpc.ChannelOpts
-import io.provenance.client.grpc.GasEstimationMethod
 import io.provenance.client.grpc.PbClient
+import io.provenance.client.grpc.PbGasEstimator
 import java.net.URI
 
 /**
@@ -49,7 +49,7 @@ interface ACClient : ACExecutor, ACQuerier {
          * @param contractIdentifier Denotes the name or address of the contract.  Tells the client where to point its requests.
          * @param chainId The blockchain identifier for use in the [PbClient].
          * @param channelUri The address for which to use for GRPC communication with Provenance.
-         * @param gasEstimationMethod Denotes the strategy used to determine gas and fees when doing provenance transactions.
+         * @param gasEstimator Denotes the strategy used to determine gas and fees when doing provenance transactions.
          * @param opts Various GRPC options - see [PbClient] for full description.
          * @param objectMapper The Jackson [ObjectMapper] instance used to communicate with the contract.  The default is configured appropriately, but can be overridden here if necessary.
          * @param channelConfigLambda Any additional GRPC configuration desired for the channel contained within the [PbClient].
@@ -58,14 +58,14 @@ interface ACClient : ACExecutor, ACQuerier {
             contractIdentifier: ContractIdentifier,
             chainId: String,
             channelUri: URI,
-            gasEstimationMethod: GasEstimationMethod,
+            gasEstimator: PbGasEstimator,
             opts: ChannelOpts = ChannelOpts(),
             objectMapper: ObjectMapper = ACObjectMapperUtil.OBJECT_MAPPER,
             channelConfigLambda: (NettyChannelBuilder) -> Unit = { }
         ): ACClient = PbClient(
             chainId = chainId,
             channelUri = channelUri,
-            gasEstimationMethod = gasEstimationMethod,
+            gasEstimationMethod = gasEstimator,
             opts = opts,
             channelConfigLambda = channelConfigLambda,
         ).let { pbClient ->
