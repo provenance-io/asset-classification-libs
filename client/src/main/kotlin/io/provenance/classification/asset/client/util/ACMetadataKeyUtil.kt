@@ -1,8 +1,7 @@
 package io.provenance.classification.asset.client.util
 
 import io.provenance.classification.asset.client.extension.base64EncodeString
-import io.provenance.classification.asset.client.extension.isTestNet
-import io.provenance.client.wallet.NetworkType
+import io.provenance.classification.asset.client.provenance.ProvenanceNetworkType
 import io.provenance.hdwallet.bip39.MnemonicWords
 import io.provenance.hdwallet.ec.extensions.toJavaECPrivateKey
 import io.provenance.hdwallet.wallet.Wallet
@@ -12,14 +11,14 @@ import java.security.PrivateKey
 object ACMetadataKeyUtil {
     fun getBase64EncodedPrivateKey(
         mnemonic: String,
-        networkType: NetworkType = NetworkType.TESTNET,
+        networkType: ProvenanceNetworkType = ProvenanceNetworkType.TESTNET,
     ): String =
         Wallet.fromMnemonic(
             hrp = networkType.prefix,
             passphrase = "",
             mnemonicWords = MnemonicWords.of(mnemonic),
             testnet = networkType.isTestNet(),
-        )[networkType.path]
+        )[networkType.hdPath]
             .keyPair
             .privateKey
             .let(::getBase64EncodedPrivateKey)

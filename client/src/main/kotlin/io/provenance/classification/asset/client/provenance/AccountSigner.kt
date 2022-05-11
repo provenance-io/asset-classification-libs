@@ -3,7 +3,6 @@ package io.provenance.classification.asset.client.provenance
 import com.google.protobuf.ByteString
 import cosmos.crypto.secp256k1.Keys
 import io.provenance.client.grpc.Signer
-import io.provenance.client.wallet.NetworkType
 import io.provenance.hdwallet.ec.PrivateKey
 import io.provenance.hdwallet.ec.PublicKey
 import io.provenance.hdwallet.ec.extensions.toECPrivateKey
@@ -59,7 +58,7 @@ class AccountSigner(
 
         fun fromMnemonic(
             mnemonic: String,
-            networkType: NetworkType,
+            networkType: ProvenanceNetworkType,
         ): AccountSigner = fromAccountDetail(
             accountDetail = ProvenanceAccountDetail.fromMnemonic(mnemonic, networkType)
         )
