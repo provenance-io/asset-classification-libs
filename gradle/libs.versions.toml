@@ -1,6 +1,6 @@
 [versions]
 bouncyCastle = "1.70"
-grpc = "1.44.0"
+grpc = "1.46.0"
 jackson = "2.13.2"
 jacksonProtobuf = "0.9.12"
 kotlin = "1.6.10"
