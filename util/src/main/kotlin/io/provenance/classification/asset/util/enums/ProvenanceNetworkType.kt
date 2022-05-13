@@ -9,7 +9,7 @@ import io.provenance.hdwallet.hrp.Hrp
  * to use collection of different address derivation methods that are used for the Provenance Blockchain.
  */
 enum class ProvenanceNetworkType(val prefix: String, val hdPath: String) {
-    MAINNET(prefix = Hrp.ProvenanceBlockchain.mainnet, hdPath = "m/505'/1'/0'/0/0"),
+    MAINNET(prefix = Hrp.ProvenanceBlockchain.mainnet, hdPath = "m/44'/505'/0'/0/0"),
     TESTNET(prefix = Hrp.ProvenanceBlockchain.testnet, hdPath = "m/44'/1'/0'/0/0'"),
     COSMOS_TESTNET(prefix = Hrp.ProvenanceBlockchain.testnet, hdPath = "m/44'/1'/0'/0/0");
 
