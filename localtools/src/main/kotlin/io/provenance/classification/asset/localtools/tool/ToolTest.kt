@@ -1,21 +1,5 @@
-# Asset Classification Local Tools
-This project is intended to be imported as a local library to assist setting up the contract on a local provenance
-instance.
+package io.provenance.classification.asset.localtools.tool
 
-## Prerequisites
-
-To setup the asset classification smart contract locally, a few requirements must be met:
-- A Provenance Blockchain instance must be running locally.
-- The "asset" root name must be bound locally to an account of which the invoker has control.
-- The invoker has control of a "contract administrator" account (can be any testnet account) that has a decent amount of hash. About 100 hash will do to be safe indefinitely.
-- The invoker has control of a "verifier" account.  This can be any account, even the contract administrator.  For a better experience though, this should be a separate account from the contract admin.
-
-## Using the SetupACTool
-
-To stand up the smart contract on your local Provenance Blockchain instance, simply provide the various configurations
-and invoke the tool:
-
-```kotlin
 import io.provenance.classification.asset.util.enums.ProvenanceNetworkType
 import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
 import io.provenance.client.grpc.GasEstimationMethod
@@ -45,4 +29,3 @@ class SetupACToolExample {
         )
     }
 }
-```

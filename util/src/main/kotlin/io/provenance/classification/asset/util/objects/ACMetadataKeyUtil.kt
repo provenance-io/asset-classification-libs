@@ -12,10 +12,11 @@ object ACMetadataKeyUtil {
     fun getBase64EncodedPrivateKey(
         mnemonic: String,
         networkType: ProvenanceNetworkType = ProvenanceNetworkType.TESTNET,
+        passphrase: String = "",
     ): String =
         Wallet.fromMnemonic(
             hrp = networkType.prefix,
-            passphrase = "",
+            passphrase = passphrase,
             mnemonicWords = MnemonicWords.of(mnemonic),
             testnet = networkType.isTestNet(),
         )[networkType.hdPath]
