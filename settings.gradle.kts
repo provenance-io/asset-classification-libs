@@ -1,6 +1,6 @@
 rootProject.name = "asset-classification-libs"
 
-include("client", "verifier")
+include("util", "client", "localtools", "verifier")
 
 pluginManagement {
     repositories {

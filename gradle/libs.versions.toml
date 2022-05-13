@@ -1,5 +1,7 @@
 [versions]
+assetSpec = "1.0.0"
 bouncyCastle = "1.70"
+feign = "10.1.0"
 grpc = "1.46.0"
 jackson = "2.13.2"
 jacksonProtobuf = "0.9.12"
@@ -16,11 +18,13 @@ provenanceScope = "0.5.1"
 scarlet = "0.1.12"
 
 [libraries]
+assetSpecs = { module = "io.provenance.spec:asset-specs", version.ref = "assetSpec" }
 bouncyCastleBcProv = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncyCastle" }
 coroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 coroutinesCoreJvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinCoroutines" }
 coroutinesJdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlinCoroutines" }
 coroutinesReactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinCoroutines" }
+feignJackson = { module = "io.github.openfeign:feign-jackson", version.ref = "feign" }
 grpcNettyShaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpcProtobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpcStub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }

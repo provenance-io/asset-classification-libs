@@ -1,8 +1,8 @@
 package io.provenance.classification.asset.verifier.config
 
 import io.provenance.classification.asset.client.client.base.ACClient
-import io.provenance.classification.asset.client.provenance.ProvenanceAccountDetail
-import io.provenance.classification.asset.verifier.util.extensions.elvis
+import io.provenance.classification.asset.util.extensions.elvisAc
+import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -46,7 +46,7 @@ class VerifierClientConfig <A, T: VerificationHooks<A>> private constructor(
         fun build(): VerifierClientConfig<A, T> = VerifierClientConfig(
             acClient = acClient,
             verifierAccount = verifierAccount,
-            coroutineScope = coroutineScopeConfig.elvis { VerifierCoroutineScopeConfig.ScopeDefinition() }.toCoroutineScope(),
+            coroutineScope = coroutineScopeConfig.elvisAc { VerifierCoroutineScopeConfig.ScopeDefinition() }.toCoroutineScope(),
             hooks = hooks,
             eventStreamNode = eventStreamNode ?: URI("ws://localhost:26657"),
             streamRestartMode = streamRestartMode ?: StreamRestartMode.On(),
