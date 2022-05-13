@@ -48,9 +48,13 @@ data class ProvenanceAccountDetail(
                 privateKeyEncoded = privateKeyEncoded,
             )
 
-        fun fromMnemonic(mnemonic: String, networkType: ProvenanceNetworkType): ProvenanceAccountDetail =
+        fun fromMnemonic(
+            mnemonic: String,
+            networkType: ProvenanceNetworkType,
+            passphrase: String = "",
+        ): ProvenanceAccountDetail =
             fromBase64PrivateKey(
-                privateKeyEncoded = ACMetadataKeyUtil.getBase64EncodedPrivateKey(mnemonic, networkType),
+                privateKeyEncoded = ACMetadataKeyUtil.getBase64EncodedPrivateKey(mnemonic, networkType, passphrase),
                 mainNet = networkType.isMainNet(),
             )
     }
