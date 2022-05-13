@@ -1,6 +1,5 @@
 package io.provenance.classification.asset.verifier.client
 
-import com.fasterxml.jackson.core.type.TypeReference
 import cosmos.auth.v1beta1.Auth.BaseAccount
 import cosmos.tx.v1beta1.ServiceOuterClass.BroadcastMode
 import io.provenance.classification.asset.client.client.base.BroadcastOptions
@@ -8,13 +7,14 @@ import io.provenance.classification.asset.client.domain.execute.VerifyAssetExecu
 import io.provenance.classification.asset.client.domain.model.AccessDefinitionType
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
-import io.provenance.classification.asset.client.provenance.AccountSigner
+import io.provenance.classification.asset.util.extensions.alsoIfAc
+import io.provenance.classification.asset.util.extensions.toProvenanceTxEventsAc
+import io.provenance.classification.asset.util.wallet.AccountSigner
 import io.provenance.classification.asset.verifier.config.StreamRestartMode
 import io.provenance.classification.asset.verifier.config.VerificationHooks
 import io.provenance.classification.asset.verifier.config.VerifierClientConfig
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
-import io.provenance.classification.asset.verifier.provenance.ContractEvent
-import io.provenance.classification.asset.verifier.util.extensions.alsoIf
+import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 import io.provenance.client.grpc.PbClient
 import io.provenance.client.protobuf.extensions.getBaseAccount
 import io.provenance.client.protobuf.extensions.getTx
@@ -26,7 +26,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -45,7 +44,7 @@ class VerifierClient<A, T: VerificationHooks<A>>(private val config: VerifierCli
         val tx = config.acClient.pbClient.cosmosService.getTx(txHash)
         val events = AssetClassificationEvent.fromVerifierTxEvents(
             sourceTx = tx,
-            txEvents = config.acClient.objectMapper.readValue(tx.txResponse.rawLog, object : TypeReference<List<VerifierTxEvents>>() {}),
+            txEvents = tx.txResponse.toProvenanceTxEventsAc(),
         )
         config.coroutineScope.launch {
             events.forEach { acEvent -> handleEvent(acEvent) }
@@ -141,7 +140,7 @@ class VerifierClient<A, T: VerificationHooks<A>>(private val config: VerifierCli
             return
         }
         // Only handle events that are relevant to the verifier
-        if (event.eventType !in ContractEvent.HANDLED_EVENTS) {
+        if (event.eventType !in ACContractEvent.HANDLED_EVENTS) {
             safe("onIgnoredEvent") { onIgnoredEvent(event, "Event type is not handled by the verifier") }
             return
         }
@@ -151,8 +150,8 @@ class VerifierClient<A, T: VerificationHooks<A>>(private val config: VerifierCli
             return
         }
         when (event.eventType) {
-            ContractEvent.ONBOARD_ASSET -> handleOnboardAsset(event)
-            ContractEvent.VERIFY_ASSET -> handleVerifyAsset(event)
+            ACContractEvent.ONBOARD_ASSET -> handleOnboardAsset(event)
+            ACContractEvent.VERIFY_ASSET -> handleVerifyAsset(event)
             else -> safe("onBadContractExecutionSetup") { onBadContractExecutionSetup(event, "After all event checks, an unexpected event was attempted for processing. Tx hash: [${event.sourceEvent.txHash}], event type: [${event.eventType}]", null) }
         }
     }
@@ -344,7 +343,7 @@ private data class AccountTrackingDetail(
         .toBuilder()
         .setSequence(sequenceNumber.get())
         .build()
-        .alsoIf(incrementAfterGet) { addTransaction() }
+        .alsoIfAc(incrementAfterGet) { addTransaction() }
     fun reset() {
         account = pbClient.authClient.getBaseAccount(account.address).also { sequenceNumber.set(it.sequence) }
     }

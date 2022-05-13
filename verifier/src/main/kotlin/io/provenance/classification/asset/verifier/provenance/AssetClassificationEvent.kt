@@ -1,7 +1,7 @@
 package io.provenance.classification.asset.verifier.provenance
 
 import cosmos.tx.v1beta1.ServiceOuterClass.GetTxResponse
-import io.provenance.classification.asset.verifier.client.VerifierTxEvents
+import io.provenance.classification.asset.util.models.ProvenanceTxEvents
 import io.provenance.eventstream.extensions.decodeBase64
 import io.provenance.eventstream.stream.clients.BlockData
 import io.provenance.eventstream.stream.models.Event
@@ -32,7 +32,7 @@ class AssetClassificationEvent(
 
         fun fromVerifierTxEvents(
             sourceTx: GetTxResponse,
-            txEvents: List<VerifierTxEvents>
+            txEvents: List<ProvenanceTxEvents>
         ): List<AssetClassificationEvent> =
             txEvents.flatMap { it.events }
                 .filter { it.type == WASM_EVENT_TYPE }
@@ -74,22 +74,22 @@ class AssetClassificationEvent(
             .associateBy { it.key }
     }
 
-    private fun getEventStringValue(key: ContractKey): String? = attributeMap[key.eventName]?.value
+    private fun getEventStringValue(key: ACContractKey): String? = attributeMap[key.eventName]?.value
 
-    private inline fun <reified T> getEventValue(key: ContractKey, transform: (String) -> T): T? = try {
+    private inline fun <reified T> getEventValue(key: ACContractKey, transform: (String) -> T): T? = try {
         getEventStringValue(key)?.let(transform)
     } catch (e: Exception) {
         null
     }
 
-    val eventType: ContractEvent? by lazy {
-        this.getEventValue(ContractKey.EVENT_TYPE) { ContractEvent.forContractName(it) }
+    val eventType: ACContractEvent? by lazy {
+        this.getEventValue(ACContractKey.EVENT_TYPE) { ACContractEvent.forContractName(it) }
     }
-    val assetType: String? by lazy { this.getEventStringValue(ContractKey.ASSET_TYPE) }
-    val scopeAddress: String? by lazy { this.getEventStringValue(ContractKey.SCOPE_ADDRESS) }
-    val verifierAddress: String? by lazy { this.getEventStringValue(ContractKey.VERIFIER_ADDRESS) }
-    val scopeOwnerAddress: String? by lazy { this.getEventStringValue(ContractKey.SCOPE_OWNER_ADDRESS) }
-    val newValue: String? by lazy { this.getEventStringValue(ContractKey.NEW_VALUE) }
+    val assetType: String? by lazy { this.getEventStringValue(ACContractKey.ASSET_TYPE) }
+    val scopeAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_ADDRESS) }
+    val verifierAddress: String? by lazy { this.getEventStringValue(ACContractKey.VERIFIER_ADDRESS) }
+    val scopeOwnerAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_OWNER_ADDRESS) }
+    val newValue: String? by lazy { this.getEventStringValue(ACContractKey.NEW_VALUE) }
 
     private data class TxAttribute(val key: String, val value: String) {
         companion object {

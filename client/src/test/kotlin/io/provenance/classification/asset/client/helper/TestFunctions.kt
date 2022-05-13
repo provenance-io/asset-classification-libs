@@ -1,7 +1,6 @@
 package io.provenance.classification.asset.client.helper
 
 import com.google.protobuf.ByteString
-import io.provenance.classification.asset.client.util.ACObjectMapperUtil
 import io.provenance.scope.util.toByteString
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -22,4 +21,4 @@ fun <T> T?.assertNull(message: String? = null) {
     assertNull(this, message)
 }
 
-fun <T> T.toJsonPayload(): ByteString = ACObjectMapperUtil.OBJECT_MAPPER.writeValueAsString(this).toByteString()
+fun <T> T.toJsonPayload(): ByteString = OBJECT_MAPPER.writeValueAsString(this).toByteString()

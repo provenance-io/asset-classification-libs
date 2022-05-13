@@ -1,5 +1,8 @@
 dependencies {
     listOf(
+        // Projects
+        project(":util"),
+
         // Bundles
         libs.bundles.grpc,
         libs.bundles.jackson,

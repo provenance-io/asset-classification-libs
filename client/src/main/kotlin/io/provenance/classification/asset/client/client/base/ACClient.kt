@@ -2,10 +2,10 @@ package io.provenance.classification.asset.client.client.base
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.provenance.classification.asset.client.util.ACObjectMapperUtil
 import io.provenance.classification.asset.client.client.impl.DefaultACClient
 import io.provenance.classification.asset.client.client.impl.DefaultACExecutor
 import io.provenance.classification.asset.client.client.impl.DefaultACQuerier
+import io.provenance.classification.asset.util.objects.ACObjectMapperUtil
 import io.provenance.client.grpc.ChannelOpts
 import io.provenance.client.grpc.PbClient
 import io.provenance.client.grpc.PbGasEstimator
@@ -21,6 +21,9 @@ interface ACClient : ACExecutor, ACQuerier {
     val objectMapper: ObjectMapper
 
     companion object {
+        // Ensure that the default object mapper is only instantiated a single time to speed up code execution
+        private val DEFAULT_OBJECT_MAPPER by lazy { ACObjectMapperUtil.getObjectMapper() }
+
         /**
          * Standard implementation of an ACClient using a [ContractIdentifier] and [PbClient] for contract communication.
          * If standard communication with the contract is desired without extra business logic during communication
@@ -33,7 +36,7 @@ interface ACClient : ACExecutor, ACQuerier {
         fun getDefault(
             contractIdentifier: ContractIdentifier,
             pbClient: PbClient,
-            objectMapper: ObjectMapper = ACObjectMapperUtil.OBJECT_MAPPER,
+            objectMapper: ObjectMapper = DEFAULT_OBJECT_MAPPER,
         ): ACClient = DefaultACQuerier(contractIdentifier, objectMapper, pbClient).let { querier ->
             DefaultACClient(
                 pbClient = pbClient,
@@ -60,7 +63,7 @@ interface ACClient : ACExecutor, ACQuerier {
             channelUri: URI,
             gasEstimator: PbGasEstimator,
             opts: ChannelOpts = ChannelOpts(),
-            objectMapper: ObjectMapper = ACObjectMapperUtil.OBJECT_MAPPER,
+            objectMapper: ObjectMapper = DEFAULT_OBJECT_MAPPER,
             channelConfigLambda: (NettyChannelBuilder) -> Unit = { }
         ): ACClient = PbClient(
             chainId = chainId,

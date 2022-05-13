@@ -19,11 +19,11 @@ import io.provenance.classification.asset.client.domain.model.EntityDetail
 import io.provenance.classification.asset.client.domain.model.FeeDestination
 import io.provenance.classification.asset.client.domain.model.QueryAssetDefinitionsResponse
 import io.provenance.classification.asset.client.domain.model.VerifierDetail
+import io.provenance.classification.asset.client.helper.OBJECT_MAPPER
 import io.provenance.classification.asset.client.helper.assertNotNull
 import io.provenance.classification.asset.client.helper.assertNull
 import io.provenance.classification.asset.client.helper.assertSucceeds
 import io.provenance.classification.asset.client.helper.toJsonPayload
-import io.provenance.classification.asset.client.util.ACObjectMapperUtil
 import io.provenance.client.grpc.PbClient
 import io.provenance.client.protobuf.extensions.queryWasm
 import io.provenance.name.v1.QueryResolveResponse
@@ -295,7 +295,7 @@ class DefaultACQuerierTest {
                 return MockSuite(
                     querier = DefaultACQuerier(
                         contractIdentifier = ContractIdentifier.Name(contractName),
-                        objectMapper = ACObjectMapperUtil.OBJECT_MAPPER,
+                        objectMapper = OBJECT_MAPPER,
                         pbClient = pbClient,
                     ),
                     pbClient = pbClient,
