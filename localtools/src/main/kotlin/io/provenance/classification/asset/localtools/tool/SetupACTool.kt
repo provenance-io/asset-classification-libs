@@ -101,9 +101,9 @@ object SetupACTool {
             pbClient = config.pbClient,
         ).also { acClient ->
             config.contractAliasNames.map { alias ->
-                config.logger("Generating restricted contract lookup alias [assetclassificationalias.pb] using contract admin address [${config.contractAdminAccount.bech32Address}]")
+                config.logger("Generating restricted contract lookup alias [$alias] using contract admin address [${config.contractAdminAccount.bech32Address}]")
                 acClient.generateBindContractAliasMsg(
-                    execute = BindContractAliasExecute.new("assetclassificationalias.pb"),
+                    execute = BindContractAliasExecute.new(alias),
                     signerAddress = config.contractAdminAccount.bech32Address,
                 )
             }.let { aliasMessages ->
