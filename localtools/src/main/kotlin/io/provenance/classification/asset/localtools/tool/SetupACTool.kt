@@ -41,10 +41,20 @@ object SetupACTool {
 
     private fun downloadWasmBytes(config: SetupACToolConfig): ByteArray {
         config.logger("Querying GitHub for a download link to the asset classification smart contract's WASM file")
-        val contractDownloadUrl = GitHubApiClient.new().getReleases(
-            organization = "provenance-io",
-            repository = "asset-classification-smart-contract",
-        ).assets
+        val contractDownloadUrl = GitHubApiClient.new().let { client ->
+            // If the release tag is provided in the configuration, attempt to download that tag and throw an exception
+            // if the release is missing
+            config.contractReleaseTag?.let { tag ->
+                client.getReleaseByTag(
+                    organization = "provenance-io",
+                    repository = "asset-classification-smart-contract",
+                    tag = tag,
+                )
+            } ?: client.getLatestRelease(
+                organization = "provenance-io",
+                repository = "asset-classification-smart-contract",
+            )
+        }.assets
             .singleOrNull { it.name == "asset_classification_smart_contract.wasm" }
             .checkNotNullAc { "Expected an asset in the asset-classification-smart-contract repository to be the WASM file for the contract" }
             .browserDownloadUrl
@@ -175,16 +185,33 @@ object SetupACTool {
     }
 }
 
+/**
+ * Defines how to run the local setup tool, with various toggles for functionality.
+ *
+ * @param pbClient A client for communication with a local instance of Provenance.
+ * @param assetNameAdminAccount The ProvenanceAccountDetail corresponding to the localnet account that controls the
+ * "asset" root name.  This account should be manually generated and provided in the root name declarations of your
+ * local genesis file.
+ * @param contractAdminAccount The ProvenanceAccountDetail corresponding to an account that will be used as the contract
+ * administrator.  This admin will be registered with the smart contract and its mnemonic should be locally held and
+ * used for all administrative operations (like adding asset definitions to the smart contract).
+ * @param verifierBech32Address The bech32 address for the account that will be set as the verifier for all automatically
+ * added asset definitions in the smart contract.
+ * @param contractAliasNames These names will be registered with the smart contract as lookup aliases, allowing any
+ * address to look up the contract's address by name resolution.  These names must branch from an unrestricted address
+ * or the setup process will throw an exception.
+ * @param contractReleaseTag An optional parameter that will allow the consumer to choose the version of the contract
+ * to download.  If this value is not provided, the latest version will be downloaded.
+ * @param logger Defines how the process does logging.  The default is Disabled, which will not log anything unless an
+ * exception occurs.
+ */
 data class SetupACToolConfig(
     val pbClient: PbClient,
-    // Your local Provenance Blockchain instance should have the "asset" root name created in its genesis file and the
-    // account it is bound to should be known to the point where a ProvenanceAccountDetail can be established from its
-    // private key or mnemonic details
     val assetNameAdminAccount: ProvenanceAccountDetail,
     val contractAdminAccount: ProvenanceAccountDetail,
     val verifierBech32Address: String,
     val contractAliasNames: List<String> = listOf("assetclassificationalias.pb", "testassets.pb"),
-    // Logging is disabled by default.  To use a standard implementation, simply provide SetupACToolLogging.Println
+    val contractReleaseTag: String? = null,
     val logger: SetupACToolLogging = SetupACToolLogging.Disabled,
 )
 

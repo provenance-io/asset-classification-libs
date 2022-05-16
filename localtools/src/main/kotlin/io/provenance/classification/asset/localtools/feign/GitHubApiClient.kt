@@ -9,9 +9,16 @@ import io.provenance.classification.asset.localtools.models.github.GitHubRelease
  */
 interface GitHubApiClient {
     @RequestLine("GET /repos/{organization}/{repository}/releases/latest")
-    fun getReleases(
+    fun getLatestRelease(
         @Param("organization") organization: String,
         @Param("repository") repository: String,
+    ): GitHubReleaseResponse
+
+    @RequestLine("GET /repos/{organization}/{repository}/releases/tags/{tag}")
+    fun getReleaseByTag(
+        @Param("organization") organization: String,
+        @Param("repository") repository: String,
+        @Param("tag") tag: String,
     ): GitHubReleaseResponse
 
     companion object {
