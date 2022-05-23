@@ -50,7 +50,7 @@ class DefaultACExecutor(
                 signerAddress = signerAddress,
                 funds = Coin
                     .newBuilder()
-                    .setAmount(verifier.onboardingCost.toString())
+                    .setAmount(verifier.onboardingCost)
                     .setDenom(verifier.onboardingDenom)
                     .build()
             )

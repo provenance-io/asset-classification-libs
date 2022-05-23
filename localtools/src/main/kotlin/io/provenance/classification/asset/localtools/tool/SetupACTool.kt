@@ -141,7 +141,7 @@ object SetupACTool {
                         address = config.verifierBech32Address,
                         onboardingCost = "100000".toBigDecimal(),
                         onboardingDenom = "nhash",
-                        feePercent = BigDecimal.ZERO,
+                        feeAmount = BigDecimal.ZERO,
                         feeDestinations = emptyList(),
                         entityDetail = EntityDetail(
                             name = "Provenance Blockchain Verifier: $specType",
