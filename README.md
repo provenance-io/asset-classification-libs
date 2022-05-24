@@ -16,6 +16,15 @@ This project contains libraries for communicating with the [Asset Classification
 [loc-badge]: https://tokei.rs/b1/github/provenance-io/asset-classification-libs
 [loc-report]: https://github.com/provenance-io/asset-classification-libs
 
+## Compatibility
+
+The following client/verifier versions should be used with the asset classification smart contract:
+
+| Client / Verifier | AC Smart Contract |
+|-------------------|-------------------|
+| v1.1.3+           | v1.0.3+           |
+| v1.1.2 and below  | v1.0.2 and below  |
+
 ## Importing the Client and/or Verifier
 - The [client](client) library can be downloaded via: `io.provenance.classification.asset:ac-client:<latest-release-version>`
 - The [verifier](verifier) library can be downloaded via: `io.provenance.classification.asset:ac-verifier:<latest-release-version>`

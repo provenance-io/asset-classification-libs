@@ -323,15 +323,14 @@ class DefaultACQuerierTest {
                     address = "address",
                     onboardingCost = "100".toBigDecimal(),
                     onboardingDenom = "nhash",
-                    feePercent = ".5".toBigDecimal(),
                     feeDestinations = listOf(
                         FeeDestination.new(
                             address = "fee1",
-                            feePercent = ".5".toBigDecimal(),
+                            feeAmount = "20".toBigDecimal(),
                         ),
                         FeeDestination.new(
                             address = "fee2",
-                            feePercent = ".5".toBigDecimal(),
+                            feeAmount = "30".toBigDecimal(),
                         )
                     ),
                     entityDetail = EntityDetail(
