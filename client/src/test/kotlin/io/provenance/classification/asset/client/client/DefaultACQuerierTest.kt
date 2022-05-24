@@ -323,7 +323,6 @@ class DefaultACQuerierTest {
                     address = "address",
                     onboardingCost = "100".toBigDecimal(),
                     onboardingDenom = "nhash",
-                    feeAmount = "50".toBigDecimal(),
                     feeDestinations = listOf(
                         FeeDestination.new(
                             address = "fee1",

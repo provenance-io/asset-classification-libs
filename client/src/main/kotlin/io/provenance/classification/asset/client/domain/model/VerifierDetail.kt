@@ -14,11 +14,9 @@ import java.math.BigDecimal
  * will be distributed to the verifier and its fee destinations based on those configurations.
  * @param onboardingDenom The denomination of coin required for onboarding.  This value is used in tandem with
  * onboarding cost to determine a coin required.
- * @param feeAmount An amount of coin that should be re-routed from the verifier to the listed fee destinations.  This
- * value can never be higher than the onboarding cost.
  * @param feeDestinations A collection of addresses and fee distribution amounts that dictates how the fee amount is
- * distributed to other addresses than the verifier.  The amounts of each destination should always sum exactly to the
- * verifier's listed fee amount.
+ * distributed to other addresses than the verifier.  The amounts of all destinations should never sum to a value
+ * greater than the onboarding cost.
  * @param entityDetail An optional set of fields defining the validator in a human-readable way.
  */
 @JsonNaming(SnakeCaseStrategy::class)
@@ -26,7 +24,6 @@ data class VerifierDetail(
     val address: String,
     val onboardingCost: String,
     val onboardingDenom: String,
-    val feeAmount: String,
     val feeDestinations: List<FeeDestination>,
     val entityDetail: EntityDetail?,
 ) {
@@ -35,7 +32,6 @@ data class VerifierDetail(
             address: String,
             onboardingCost: BigDecimal,
             onboardingDenom: String,
-            feeAmount: BigDecimal,
             feeDestinations: List<FeeDestination> = emptyList(),
             entityDetail: EntityDetail? = null,
         ): VerifierDetail = VerifierDetail(
@@ -43,8 +39,6 @@ data class VerifierDetail(
             // The cost must not have any decimal places - remove them before setting the value. This represents a coin amount
             onboardingCost = onboardingCost.toUint128CompatibleStringAc(),
             onboardingDenom = onboardingDenom,
-            // The fee amount must not have any decimal places - remove them before setting the value. This represents a coin amount
-            feeAmount = feeAmount.toUint128CompatibleStringAc(),
             feeDestinations = feeDestinations,
             entityDetail = entityDetail,
         )
