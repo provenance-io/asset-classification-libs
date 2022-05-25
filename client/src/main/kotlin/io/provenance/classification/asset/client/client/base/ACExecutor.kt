@@ -5,6 +5,7 @@ import cosmwasm.wasm.v1.Tx.MsgExecuteContract
 import io.provenance.classification.asset.client.domain.execute.AddAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.AddAssetVerifierExecute
 import io.provenance.classification.asset.client.domain.execute.BindContractAliasExecute
+import io.provenance.classification.asset.client.domain.execute.DeleteAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.OnboardAssetExecute
 import io.provenance.classification.asset.client.domain.execute.ToggleAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.UpdateAccessRoutesExecute
@@ -37,7 +38,7 @@ interface ACExecutor {
      * See: [OnboardAssetExecute] class for descriptions of each portion of the request and its usages.
      *
      * @param execute The [OnboardAssetExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun <T> onboardAsset(
@@ -64,7 +65,7 @@ interface ACExecutor {
      * that it indeed meets the standards of its specified asset type.
      *
      * @param execute The [VerifyAssetExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun <T> verifyAsset(
@@ -94,7 +95,7 @@ interface ACExecutor {
      * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
      *
      * @param execute The [AddAssetDefinitionExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun <T> addAssetDefinition(
@@ -126,7 +127,7 @@ interface ACExecutor {
      * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
      *
      * @param execute The [UpdateAssetDefinitionExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun <T> updateAssetDefinition(
@@ -157,7 +158,7 @@ interface ACExecutor {
      * This route will only succeed if the admin address or address in [ownerAddress][io.provenance.classification.asset.client.domain.execute.UpdateAccessRoutesBody.ownerAddress] is used.
      *
      * @param execute The [UpdateAccessRoutesExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun <T> updateAccessRoutes(
@@ -188,7 +189,7 @@ interface ACExecutor {
      * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
      *
      * @param execute The [ToggleAssetDefinitionExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun toggleAssetDefinition(
@@ -218,7 +219,7 @@ interface ACExecutor {
      * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
      *
      * @param execute The [AddAssetVerifierExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun addAssetVerifier(
@@ -248,7 +249,7 @@ interface ACExecutor {
      * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
      *
      * @param execute The [UpdateAssetVerifierExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun updateAssetVerifier(
@@ -278,11 +279,41 @@ interface ACExecutor {
      * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
      *
      * @param execute The [BindContractAliasExecute] payload that will be sent to the smart contract.
-     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.client.provenance.AccountSigner] for a provided implementation.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
      * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
      */
     fun bindContractAlias(
         execute: BindContractAliasExecute,
+        signer: Signer,
+        options: BroadcastOptions = BroadcastOptions(),
+    ): BroadcastTxResponse
+
+    /**
+     * Builds a [MsgExecuteContract] used during the [deleteAssetDefinition] call.  Use this function to get a message that
+     * can be bundled with other messages in a transaction.
+     *
+     * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
+     *
+     * @param execute The [DeleteAssetDefinitionExecute] payload that will be sent to the smart contract.
+     * @param signerAddress The address that will sign this message when executed in a transaction.
+     */
+    fun generateDeleteAssetDefinitionMsg(
+        execute: DeleteAssetDefinitionExecute,
+        signerAddress: String,
+    ): MsgExecuteContract
+
+    /**
+     * Executes the Asset Classification smart contract to delete an [AssetDefinition][io.provenance.classification.asset.client.domain.model.AssetDefinition]
+     * currently stored in the contract's state.
+     *
+     * ADMIN ONLY! Use: [queryContractState][io.provenance.classification.asset.client.client.base.ACQuerier.queryContractState] to find the admin address.
+     *
+     * @param execute The [DeleteAssetDefinitionExecute] payload that will be sent to the smart contract.
+     * @param signer Any implementation of [Signer] to sign the message programmatically.  See [AccountSigner][io.provenance.classification.asset.util.wallet.AccountSigner] for a provided implementation.
+     * @param options Various options that alter how the transaction is broadcast.  See [BroadcastOptions] for more details.
+     */
+    fun deleteAssetDefinition(
+        execute: DeleteAssetDefinitionExecute,
         signer: Signer,
         options: BroadcastOptions = BroadcastOptions(),
     ): BroadcastTxResponse

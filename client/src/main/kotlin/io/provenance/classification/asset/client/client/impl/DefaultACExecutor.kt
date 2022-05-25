@@ -16,6 +16,7 @@ import io.provenance.classification.asset.client.client.base.ACExecutor
 import io.provenance.classification.asset.client.client.base.ACQuerier
 import io.provenance.classification.asset.client.client.base.BroadcastOptions
 import io.provenance.classification.asset.client.domain.execute.BindContractAliasExecute
+import io.provenance.classification.asset.client.domain.execute.DeleteAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.UpdateAccessRoutesExecute
 import io.provenance.client.grpc.BaseReqSigner
 import io.provenance.client.grpc.PbClient
@@ -150,6 +151,17 @@ class DefaultACExecutor(
         signer: Signer,
         options: BroadcastOptions,
     ): BroadcastTxResponse = doExecute(generateBindContractAliasMsg(execute, signer.address()), signer, options)
+
+    override fun generateDeleteAssetDefinitionMsg(
+        execute: DeleteAssetDefinitionExecute,
+        signerAddress: String,
+    ): MsgExecuteContract = generateMsg(execute, signerAddress)
+
+    override fun deleteAssetDefinition(
+        execute: DeleteAssetDefinitionExecute,
+        signer: Signer,
+        options: BroadcastOptions,
+    ): BroadcastTxResponse = doExecute(generateDeleteAssetDefinitionMsg(execute, signer.address()), signer, options)
 
     /**
      * Constructs a generic [MsgExecuteContract] from a provided [ContractExecute] message, ensuring that the provided
