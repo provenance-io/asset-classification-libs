@@ -11,45 +11,54 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-class VerifierClientConfig <A, T: VerificationHooks<A>> private constructor(
+class VerifierClientConfig private constructor(
     val acClient: ACClient,
     val verifierAccount: ProvenanceAccountDetail,
     val coroutineScope: CoroutineScope,
-    val hooks: T,
+    val verificationProcessor: VerificationProcessor<*>,
     val eventStreamNode: URI,
     val streamRestartMode: StreamRestartMode,
+    val eventProcessors: Map<String, suspend (VerifierEvent) -> Unit>,
 ) {
 
     companion object {
-        fun <A, T: VerificationHooks<A>> builder(
+        fun builder(
             acClient: ACClient,
             verifierAccount: ProvenanceAccountDetail,
-            hooks: T,
-        ): Builder<A, T> = Builder(acClient, verifierAccount, hooks)
+            verificationProcessor: VerificationProcessor<*>,
+        ): Builder = Builder(acClient, verifierAccount, verificationProcessor)
     }
 
-    class Builder <A, T: VerificationHooks<A>> internal constructor(
+    class Builder internal constructor(
         private val acClient: ACClient,
         private val verifierAccount: ProvenanceAccountDetail,
-        private val hooks: T,
+        private val verificationProcessor: VerificationProcessor<*>,
     ) {
         private var eventStreamNode: URI? = null
         private var startingBlockHeight: Long? = null
         private var streamRestartMode: StreamRestartMode? = null
         private var coroutineScopeConfig: VerifierCoroutineScopeConfig? = null
+        private val eventProcessors: MutableMap<String, suspend (VerifierEvent) -> Unit> = mutableMapOf()
 
         fun withEventStreamNode(node: URI) = apply { eventStreamNode = node }
         fun withStartingBlockHeight(height: Long) = apply { startingBlockHeight = height }
         fun withStreamRestartMode(mode: StreamRestartMode) = apply { streamRestartMode = mode }
         fun withCoroutineScope(config: VerifierCoroutineScopeConfig) = apply { coroutineScopeConfig = config }
+        // All instances of E must be able to cast to VerifierEvent due to type constraints on VerifierEventType, so this
+        // cast will always succeed, despite compiler anger
+        @Suppress("UNCHECKED_CAST")
+        fun <E: VerifierEvent> addEventProcessor(eventType: VerifierEventType<E>, processor: suspend (E) -> Unit) = apply {
+            eventProcessors += eventType.getEventTypeName() to processor as suspend (VerifierEvent) -> Unit
+        }
 
-        fun build(): VerifierClientConfig<A, T> = VerifierClientConfig(
+        fun build(): VerifierClientConfig = VerifierClientConfig(
             acClient = acClient,
             verifierAccount = verifierAccount,
             coroutineScope = coroutineScopeConfig.elvisAc { VerifierCoroutineScopeConfig.ScopeDefinition() }.toCoroutineScope(),
-            hooks = hooks,
+            verificationProcessor = verificationProcessor,
             eventStreamNode = eventStreamNode ?: URI("ws://localhost:26657"),
             streamRestartMode = streamRestartMode ?: StreamRestartMode.On(),
+            eventProcessors = eventProcessors,
         )
     }
 }
