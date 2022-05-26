@@ -1,6 +1,7 @@
 package io.provenance.classification.asset.verifier.config
 
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
+import io.provenance.classification.asset.verifier.client.AssetVerification
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
 import io.provenance.eventstream.stream.clients.BlockData
 
@@ -152,6 +153,7 @@ sealed interface VerifierEvent {
     data class OnboardEventPreVerifySend(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
+        val verification: AssetVerification,
     ): VerifierEvent
 
     /**
