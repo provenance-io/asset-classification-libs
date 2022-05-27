@@ -4,9 +4,6 @@ import cosmos.auth.v1beta1.Auth.BaseAccount
 import cosmos.tx.v1beta1.ServiceOuterClass.BroadcastMode
 import io.provenance.classification.asset.client.client.base.BroadcastOptions
 import io.provenance.classification.asset.client.domain.execute.VerifyAssetExecute
-import io.provenance.classification.asset.client.domain.model.AccessDefinitionType
-import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
-import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
 import io.provenance.classification.asset.util.extensions.alsoIfAc
 import io.provenance.classification.asset.util.extensions.toProvenanceTxEventsAc
 import io.provenance.classification.asset.util.wallet.AccountSigner
@@ -17,16 +14,9 @@ import io.provenance.classification.asset.verifier.config.VerifierEvent
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredDifferentVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredNoVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredUnhandledEventType
-import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredUnknownEvent
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredUnknownWasmEvent
 import io.provenance.classification.asset.verifier.config.VerifierEvent.NewBlockHeightReceived
 import io.provenance.classification.asset.verifier.config.VerifierEvent.NewBlockReceived
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventFailedToRetrieveAsset
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventFailedToVerifyAsset
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredMissingScopeAddress
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredMissingScopeAttribute
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredPreviouslyProcessed
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventPreVerifySend
 import io.provenance.classification.asset.verifier.config.VerifierEvent.StreamCompleted
 import io.provenance.classification.asset.verifier.config.VerifierEvent.StreamExceptionOccurred
 import io.provenance.classification.asset.verifier.config.VerifierEvent.StreamExited
@@ -36,11 +26,9 @@ import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyAs
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyAssetSendSyncSequenceNumberFailed
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyAssetSendThrewException
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventChannelThrewException
-import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventFailedOnboardingStatusStillPending
-import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventIgnoredMissingScopeAddress
-import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventIgnoredMissingScopeAttribute
-import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventSuccessful
 import io.provenance.classification.asset.verifier.config.VerifierEventType
+import io.provenance.classification.asset.verifier.event.EventHandlerParameters
+import io.provenance.classification.asset.verifier.event.VerificationMessage
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 import io.provenance.client.grpc.PbClient
@@ -66,8 +54,9 @@ class VerifierClient(private val config: VerifierClientConfig) {
     private val verifyProcessor: VerificationProcessor<Any> = config.verificationProcessor as VerificationProcessor<Any>
     private val signer = AccountSigner.fromAccountDetail(config.verifierAccount)
     private val decoderAdapter = moshiDecoderAdapter()
-    private var jobWatcher = VerifierJobWatcher()
+    private var jobs = VerifierJobs()
     private val verificationChannel = Channel<VerificationMessage>(capacity = Channel.BUFFERED)
+    private val eventChannel = Channel<VerifierEvent>(capacity = Channel.BUFFERED)
     private val tracking: AccountTrackingDetail =
         AccountTrackingDetail.lookup(config.acClient.pbClient, config.verifierAccount.bech32Address)
 
@@ -85,14 +74,13 @@ class VerifierClient(private val config: VerifierClientConfig) {
     fun startVerifying(startingBlockHeight: Long): Job = config
         .coroutineScope
         .launch { verifyLoop(startingBlockHeight) }
-        .also { jobWatcher.verificationJob = it }
+        .also { jobs.processorJob = it }
+        .also { startEventChannelReceiver() }
         .also { startVerificationReceiver() }
 
+
     fun stopVerifying() {
-        if (jobWatcher.verificationJob == null) {
-            throw IllegalStateException("Cannot stop the verifier. It is not running")
-        }
-        jobWatcher.verificationJob?.cancel(CancellationException("Manual verification cancellation requested"))
+        jobs.cancelAndClearJobs()
         tracking.reset()
     }
 
@@ -106,11 +94,11 @@ class VerifierClient(private val config: VerifierClientConfig) {
         val currentHeight = netAdapter.rpcAdapter.getCurrentHeight()
         var latestBlock = startingBlockHeight?.takeIf { start -> start > 0 && currentHeight?.let { it >= start } != false }
         blockDataFlow(netAdapter, decoderAdapter, from = latestBlock)
-            .catch { e -> StreamExceptionOccurred(e).emit() }
-            .onCompletion { t -> StreamCompleted(t).emit() }
+            .catch { e -> StreamExceptionOccurred(e).send() }
+            .onCompletion { t -> StreamCompleted(t).send() }
             .onEach { block ->
                 // Record each block intercepted
-                NewBlockReceived(block).emit()
+                NewBlockReceived(block).send()
                 // Track new block height
                 latestBlock = trackBlockHeight(latestBlock, block.height)
             }
@@ -127,7 +115,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
             netAdapter.shutdown()
         } catch (e: Exception) {
             // Emit the exception encountered on net adapter shutdown and exit the stream entirely
-            StreamExceptionOccurred(e).emit()
+            StreamExceptionOccurred(e).send()
             // Escape the loop entirely if the adapter fails to shut down - there should never be two adapters running
             // in tandem via this client
             return
@@ -137,12 +125,12 @@ class VerifierClient(private val config: VerifierClientConfig) {
                 if (config.streamRestartMode.restartDelayMs > 0) {
                     delay(config.streamRestartMode.restartDelayMs)
                 }
-                StreamRestarted(latestBlock).emit()
+                StreamRestarted(latestBlock).send()
                 // Recurse into a new event stream if the stream needs to restart
                 verifyLoop(latestBlock)
             }
             is StreamRestartMode.Off -> {
-                StreamExited(latestBlock).emit()
+                StreamExited(latestBlock).send()
             }
         }
     }
@@ -151,7 +139,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
         latestHeight: Long?,
         newHeight: Long
     ): Long = if (latestHeight == null || latestHeight < newHeight) {
-        NewBlockHeightReceived(newHeight).emit()
+        NewBlockHeightReceived(newHeight).send()
         newHeight
     } else {
         latestHeight
@@ -161,147 +149,39 @@ class VerifierClient(private val config: VerifierClientConfig) {
         // This will be extremely common - we cannot filter events upfront in the event stream code, so this check
         // throws away everything not emitted by the asset classification smart contract
         if (event.eventType == null) {
-            EventIgnoredUnknownWasmEvent(event).emit()
+            EventIgnoredUnknownWasmEvent(event).send()
             return
         }
         // This will commonly happen - the contract emits events that don't target the verifier at all, but they'll
         // still pass through here
         if (event.verifierAddress == null) {
-            EventIgnoredNoVerifierAddress(event).emit()
+            EventIgnoredNoVerifierAddress(event).send()
             return
         }
         // Only handle events that are relevant to the verifier
-        if (event.eventType !in ACContractEvent.HANDLED_EVENTS) {
-            EventIgnoredUnhandledEventType(event).emit()
+        if (event.eventType !in config.eventDelegator.getHandledEventTypes()) {
+            EventIgnoredUnhandledEventType(event).send()
             return
         }
         // Only process verifications that are targeted at the registered verifier account
         if (event.verifierAddress != config.verifierAccount.bech32Address) {
-            EventIgnoredDifferentVerifierAddress(event, config.verifierAccount.bech32Address).emit()
+            EventIgnoredDifferentVerifierAddress(event, config.verifierAccount.bech32Address).send()
             return
         }
-        when (event.eventType) {
-            ACContractEvent.ONBOARD_ASSET -> handleOnboardAsset(event)
-            ACContractEvent.VERIFY_ASSET -> handleVerifyAsset(event)
-            else -> EventIgnoredUnknownEvent(event).emit()
-        }
-    }
-
-    private suspend fun handleOnboardAsset(event: AssetClassificationEvent) {
-        val messagePrefix = "[ONBOARD_ASSET | Tx: ${event.sourceEvent.txHash} | Asset: ${event.scopeAddress}]:"
-        val scopeAddress = event.scopeAddress ?: run {
-            OnboardEventIgnoredMissingScopeAddress(
+        config.eventDelegator.delegateEvent(
+            parameters = EventHandlerParameters(
                 event = event,
-                message = "$messagePrefix Expected the onboard asset event to include a scope address, but it was missing",
-            ).emit()
-            return
-        }
-        val scopeAttribute = try {
-            config.acClient.queryAssetScopeAttributeByScopeAddress(scopeAddress)
-        } catch (t: Throwable) {
-            OnboardEventIgnoredMissingScopeAttribute(
-                event = event,
-                message = "$messagePrefix Intercepted onboard asset did not point to a scope with a scope attribute",
-                t = t,
-            ).emit()
-            return
-        }
-
-        if (scopeAttribute.onboardingStatus != AssetOnboardingStatus.PENDING) {
-            OnboardEventIgnoredPreviouslyProcessed(
-                event = event,
-                scopeAttribute = scopeAttribute,
-                message = "$messagePrefix Scope attribute indicates an onboarding status of [${scopeAttribute.onboardingStatus}], which is not actionable.  Has verification: [Verified = ${scopeAttribute.latestVerificationResult?.success} | Message = ${scopeAttribute.latestVerificationResult?.message}]",
-            ).emit()
-            return
-        }
-
-        val targetRoutes = scopeAttribute.accessDefinitions.singleOrNull { it.definitionType == AccessDefinitionType.REQUESTOR }
-            ?.accessRoutes
-            // Provide an empty list if no access routes were defined by the requestor
-            ?: emptyList()
-
-        val asset = try {
-            verifyProcessor.retrieveAsset(event, scopeAttribute, targetRoutes)
-        } catch(t: Throwable) {
-            OnboardEventFailedToRetrieveAsset(
-                event = event,
-                scopeAttribute = scopeAttribute,
-                t = t,
-            ).emit()
-            null
-        } ?: return
-
-        val verification = try {
-            verifyProcessor.verifyAsset(event, scopeAttribute, asset)
-        } catch (t: Throwable) {
-            OnboardEventFailedToVerifyAsset(
-                event = event,
-                scopeAttribute = scopeAttribute,
-                t = t,
-            ).emit()
-            null
-        } ?: return
-
-        OnboardEventPreVerifySend(event, scopeAttribute, verification).emit()
-
-        verificationChannel.send(
-            VerificationMessage(
-            messagePrefix = messagePrefix,
-            event = event,
-            scopeAttribute = scopeAttribute,
-            verification = verification,
+                acClient = config.acClient,
+                processor = verifyProcessor,
+                verificationChannel = verificationChannel,
+                eventChannel = eventChannel,
+            )
         )
-        )
-    }
-
-    private suspend fun handleVerifyAsset(event: AssetClassificationEvent) {
-        val messagePrefix = "[VERIFY ASSET | Tx: ${event.sourceEvent.txHash} | Asset ${event.scopeAddress}"
-        val scopeAddress = event.scopeAddress ?: run {
-            VerifyEventIgnoredMissingScopeAddress(
-                event = event,
-                message = "$messagePrefix Expected the verify asset event to include a scope address, but it was missing",
-            ).emit()
-            return
-        }
-        val scopeAttribute = try {
-            config.acClient.queryAssetScopeAttributeByScopeAddress(scopeAddress)
-        } catch (t: Throwable) {
-            VerifyEventIgnoredMissingScopeAttribute(
-                event = event,
-                message = "$messagePrefix Intercepted verification did not point to a scope with a scope attribute",
-                t = t,
-            ).emit()
-            return
-        }
-        if (scopeAttribute.onboardingStatus == AssetOnboardingStatus.PENDING) {
-            VerifyEventFailedOnboardingStatusStillPending(
-                event = event,
-                scopeAttribute = scopeAttribute,
-                message = "$messagePrefix Verification did not successfully move onboarding status from pending",
-            ).emit()
-            return
-        }
-        VerifyEventSuccessful(event, scopeAttribute).emit()
-    }
-
-    private suspend fun <E: VerifierEvent> E.emit() {
-        try {
-            config.eventProcessors[this.getEventTypeName()]?.invoke(this)
-        } catch (t: Throwable) {
-            try {
-                config.eventProcessors[VerifierEventType.CustomEventProcessorFailed.getEventTypeName()]
-                    ?.invoke(VerifierEvent.CustomEventProcessorFailed(failedEventName = this.getEventTypeName(), t = t))
-            } catch (t: Throwable) {
-                // RIP worst case scenario - kill the stream with an exception
-                throw IllegalStateException("Internal failure hook is misconfigured and threw an exception", t)
-            }
-        }
     }
 
     private fun startVerificationReceiver() {
         // Only one receiver channel needs to run at a time
-        if (jobWatcher.receiverJob != null) {
+        if (jobs.verificationSendJob != null) {
             return
         }
         config.coroutineScope.launch {
@@ -326,9 +206,9 @@ class VerifierClient(private val config: VerifierClientConfig) {
                             event = message.event,
                             scopeAttribute = message.scopeAttribute,
                             verification = message.verification,
-                            message = "${message.messagePrefix} Sending verification to smart contract failed",
+                            message = "${message.failureMessagePrefix} Sending verification to smart contract failed",
                             t = t,
-                        ).emit()
+                        ).send()
                         try {
                             tracking.reset()
                         } catch (t: Throwable) {
@@ -336,9 +216,9 @@ class VerifierClient(private val config: VerifierClientConfig) {
                                 event = message.event,
                                 scopeAttribute = message.scopeAttribute,
                                 verification = message.verification,
-                                message = "${message.messagePrefix} Failed to reset account data after transaction. This may require an app restart",
+                                message = "${message.failureMessagePrefix} Failed to reset account data after transaction. This may require an app restart",
                                 t = t,
-                            ).emit()
+                            ).send()
                         }
                         null
                     }
@@ -348,7 +228,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
                                 event = message.event,
                                 scopeAttribute = message.scopeAttribute,
                                 verification = message.verification,
-                            ).emit()
+                            ).send()
                         } else {
                             VerifyAssetSendFailed(
                                 event = message.event,
@@ -360,10 +240,37 @@ class VerifierClient(private val config: VerifierClientConfig) {
                         }
                     }
                 } catch (t: Throwable) {
-                    VerifyEventChannelThrewException(t).emit()
+                    VerifyEventChannelThrewException(t).send()
                 }
             }
-        }.also { jobWatcher.receiverJob = it }
+        }.also { jobs.verificationSendJob = it }
+    }
+
+    private fun startEventChannelReceiver() {
+        // Only one receiver channel needs to run at a time
+        if (jobs.eventHandlerJob != null) {
+            return
+        }
+        config.coroutineScope.launch {
+            // A for-loop over a channel will infinitely iterate
+            for (event in eventChannel) {
+                try {
+                    config.eventProcessors[event.getEventTypeName()]?.invoke(event)
+                } catch (t: Throwable) {
+                    try {
+                        config.eventProcessors[VerifierEventType.CustomEventProcessorFailed.getEventTypeName()]
+                            ?.invoke(VerifierEvent.CustomEventProcessorFailed(failedEventName = event.getEventTypeName(), t = t))
+                    } catch (t: Throwable) {
+                        // Worst case scenario - bad event with bad custom event handler.  This just gets silently
+                        // ignored because there's nothing that can be done.
+                    }
+                }
+            }
+        }.also { jobs.eventHandlerJob = it }
+    }
+
+    private suspend fun VerifierEvent.send() {
+        eventChannel.send(this)
     }
 }
 
@@ -372,17 +279,20 @@ data class AssetVerification(
     val verifySuccess: Boolean,
 )
 
-private data class VerifierJobWatcher(
-    var verificationJob: Job? = null,
-    var receiverJob: Job? = null,
-)
-
-private data class VerificationMessage(
-    val messagePrefix: String,
-    val event: AssetClassificationEvent,
-    val scopeAttribute: AssetScopeAttribute,
-    val verification: AssetVerification,
-)
+private data class VerifierJobs(
+    var processorJob: Job? = null,
+    var verificationSendJob: Job? = null,
+    var eventHandlerJob: Job? = null,
+) {
+    fun cancelAndClearJobs() {
+        processorJob?.cancel(CancellationException("Manual verification cancellation requested"))
+        verificationSendJob?.cancel(CancellationException("Manual verification sender job cancellation requested"))
+        eventHandlerJob?.cancel(CancellationException("Manual event handler job cancellation requested"))
+        processorJob = null
+        verificationSendJob = null
+        eventHandlerJob = null
+    }
+}
 
 private data class AccountTrackingDetail(
     val pbClient: PbClient,
@@ -398,11 +308,13 @@ private data class AccountTrackingDetail(
             )
         }
     }
+
     fun sequencedAccount(incrementAfterGet: Boolean = false): BaseAccount = account
         .toBuilder()
         .setSequence(sequenceNumber.get())
         .build()
         .alsoIfAc(incrementAfterGet) { addTransaction() }
+
     fun reset() {
         account = pbClient.authClient.getBaseAccount(account.address).also { sequenceNumber.set(it.sequence) }
     }

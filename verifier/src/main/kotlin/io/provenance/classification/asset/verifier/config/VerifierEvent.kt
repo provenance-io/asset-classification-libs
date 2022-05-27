@@ -404,7 +404,8 @@ sealed interface VerifierEvent {
     /**
      * This event is emitted when an event processor is registered in the VerifierClientConfig that can throw an exception.
      * The VerifierClient will catch any exception thrown by custom processor code and emit this error with the
-     * exception thrown contained as `t`.
+     * exception thrown contained as `t`.  It is HIGHLY recommended that only safe code be run in the handler for this
+     * event, because if the code in the handler fails with an exception, the problem is silently ignored.
      *
      * @param failedEventName The name of the [VerifierEvent] that had a misconfigured custom event process that threw
      * an exception.
@@ -743,7 +744,8 @@ sealed interface VerifierEventType<E: VerifierEvent> {
     /**
      * This event is emitted when an event processor is registered in the VerifierClientConfig that can throw an exception.
      * The VerifierClient will catch any exception thrown by custom processor code and emit this error with the
-     * exception thrown contained as `t`.
+     * exception thrown contained as `t`.  It is HIGHLY recommended that only safe code be run in the handler for this
+     * event, because if the code in the handler fails with an exception, the problem is silently ignored.
      *
      * @param failedEventName The name of the [VerifierEvent] that had a misconfigured custom event process that threw
      * an exception.

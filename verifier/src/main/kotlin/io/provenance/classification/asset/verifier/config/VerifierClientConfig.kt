@@ -3,6 +3,8 @@ package io.provenance.classification.asset.verifier.config
 import io.provenance.classification.asset.client.client.base.ACClient
 import io.provenance.classification.asset.util.extensions.elvisAc
 import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
+import io.provenance.classification.asset.verifier.event.AssetClassificationEventDelegator
+import io.provenance.classification.asset.verifier.event.AssetClassificationEventDelegator.AssetClassificationEventDelegatorBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -18,6 +20,7 @@ class VerifierClientConfig private constructor(
     val verificationProcessor: VerificationProcessor<*>,
     val eventStreamNode: URI,
     val streamRestartMode: StreamRestartMode,
+    val eventDelegator: AssetClassificationEventDelegator,
     val eventProcessors: Map<String, suspend (VerifierEvent) -> Unit>,
 ) {
 
@@ -38,12 +41,25 @@ class VerifierClientConfig private constructor(
         private var startingBlockHeight: Long? = null
         private var streamRestartMode: StreamRestartMode? = null
         private var coroutineScopeConfig: VerifierCoroutineScopeConfig? = null
+        private var eventDelegator: AssetClassificationEventDelegator? = null
         private val eventProcessors: MutableMap<String, suspend (VerifierEvent) -> Unit> = mutableMapOf()
 
         fun withEventStreamNode(node: URI) = apply { eventStreamNode = node }
+
         fun withStartingBlockHeight(height: Long) = apply { startingBlockHeight = height }
+
         fun withStreamRestartMode(mode: StreamRestartMode) = apply { streamRestartMode = mode }
+
         fun withCoroutineScope(config: VerifierCoroutineScopeConfig) = apply { coroutineScopeConfig = config }
+
+        fun withEventDelegator(delegator: AssetClassificationEventDelegator) = apply { eventDelegator = delegator }
+
+        fun buildEventDelegator(
+            builderFn: (AssetClassificationEventDelegatorBuilder) -> AssetClassificationEventDelegatorBuilder,
+        ) = apply {
+            AssetClassificationEventDelegator.builder().let(builderFn).build()
+        }
+
         // All instances of E must be able to cast to VerifierEvent due to type constraints on VerifierEventType, so this
         // cast will always succeed, despite compiler anger
         @Suppress("UNCHECKED_CAST")
@@ -58,6 +74,7 @@ class VerifierClientConfig private constructor(
             verificationProcessor = verificationProcessor,
             eventStreamNode = eventStreamNode ?: URI("ws://localhost:26657"),
             streamRestartMode = streamRestartMode ?: StreamRestartMode.On(),
+            eventDelegator = eventDelegator ?: AssetClassificationEventDelegator.default(),
             eventProcessors = eventProcessors,
         )
     }

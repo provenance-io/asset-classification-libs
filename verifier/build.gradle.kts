@@ -11,5 +11,11 @@ dependencies {
         libs.okHttp3,
     ).forEach(::api)
 
-    testImplementation(libs.bundles.test)
+    listOf(
+        // Bundles
+        libs.bundles.test,
+
+        // Libraries
+        libs.coroutinesTest,
+    ).forEach(::testImplementation)
 }
