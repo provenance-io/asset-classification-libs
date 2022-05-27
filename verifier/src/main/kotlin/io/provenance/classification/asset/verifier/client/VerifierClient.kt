@@ -243,7 +243,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
             null
         } ?: return
 
-        OnboardEventPreVerifySend(event, scopeAttribute).emit()
+        OnboardEventPreVerifySend(event, scopeAttribute, verification).emit()
 
         verificationChannel.send(
             VerificationMessage(
