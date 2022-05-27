@@ -290,9 +290,8 @@ class VerifierClient(private val config: VerifierClientConfig) {
             config.eventProcessors[this.getEventTypeName()]?.invoke(this)
         } catch (t: Throwable) {
             try {
-                config.eventProcessors[VerifierEventType.CustomEventProcessorFailed.getEventTypeName()]?.invoke(
-                    VerifierEvent.CustomEventProcessorFailed(t)
-                )
+                config.eventProcessors[VerifierEventType.CustomEventProcessorFailed.getEventTypeName()]
+                    ?.invoke(VerifierEvent.CustomEventProcessorFailed(failedEventName = this.getEventTypeName(), t = t))
             } catch (t: Throwable) {
                 // RIP worst case scenario - kill the stream with an exception
                 throw IllegalStateException("Internal failure hook is misconfigured and threw an exception", t)
@@ -326,6 +325,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
                         VerifyAssetSendThrewException(
                             event = message.event,
                             scopeAttribute = message.scopeAttribute,
+                            verification = message.verification,
                             message = "${message.messagePrefix} Sending verification to smart contract failed",
                             t = t,
                         ).emit()
@@ -335,6 +335,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
                             VerifyAssetSendSyncSequenceNumberFailed(
                                 event = message.event,
                                 scopeAttribute = message.scopeAttribute,
+                                verification = message.verification,
                                 message = "${message.messagePrefix} Failed to reset account data after transaction. This may require an app restart",
                                 t = t,
                             ).emit()
@@ -346,11 +347,13 @@ class VerifierClient(private val config: VerifierClientConfig) {
                             VerifyAssetSendSucceeded(
                                 event = message.event,
                                 scopeAttribute = message.scopeAttribute,
+                                verification = message.verification,
                             ).emit()
                         } else {
                             VerifyAssetSendFailed(
                                 event = message.event,
                                 scopeAttribute = message.scopeAttribute,
+                                verification = message.verification,
                                 responseCode = response.txResponse.code,
                                 rawLog = response.txResponse.rawLog,
                             )
@@ -372,12 +375,7 @@ data class AssetVerification(
 private data class VerifierJobWatcher(
     var verificationJob: Job? = null,
     var receiverJob: Job? = null,
-) {
-    fun reset() {
-        verificationJob = null
-        receiverJob = null
-    }
-}
+)
 
 private data class VerificationMessage(
     val messagePrefix: String,
