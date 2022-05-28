@@ -4,9 +4,11 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
+import io.provenance.classification.asset.verifier.client.AssetVerification
 import io.provenance.classification.asset.verifier.config.VerifierEvent
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredMissingScopeAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredMissingScopeAttribute
+import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventPreVerifySend
 import io.provenance.classification.asset.verifier.event.EventHandlerParameters
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
@@ -55,7 +57,7 @@ class DefaultOnboardEventHandlerTest {
         val parameters = getMockParameters { builder ->
             builder.addACAttribute(MockACAttribute.ScopeAddress("mock-scope-address"))
         }
-        every { parameters.acClient.queryAssetScopeAttributeByScopeAddress(any()) } throws(IllegalStateException("Failed to query for scope"))
+        every { parameters.acClient.queryAssetScopeAttributeByScopeAddress(any()) } throws IllegalStateException("Failed to query for scope")
         DefaultOnboardEventHandler.handleEvent(parameters)
         assertTrue(
             actual = parameters.verificationChannel.isEmpty,
@@ -120,7 +122,7 @@ class DefaultOnboardEventHandlerTest {
         }
         val mockScopeAttribute = getMockScopeAttribute()
         every { parameters.acClient.queryAssetScopeAttributeByScopeAddress(any()) } returns mockScopeAttribute
-        coEvery { parameters.processor.retrieveAsset(any(), any(), any()) } throws(IllegalStateException("MOCK: Failed to retrieve asset"))
+        coEvery { parameters.processor.retrieveAsset(any(), any(), any()) } throws IllegalStateException("MOCK: Failed to retrieve asset")
         DefaultOnboardEventHandler.handleEvent(parameters)
         assertTrue(
             actual = parameters.verificationChannel.isEmpty,
@@ -147,7 +149,100 @@ class DefaultOnboardEventHandlerTest {
                 message = "Expected the exception to include the correct message",
             )
         }
+    }
 
+    @Test
+    fun testFailureToVerifyAsset() = runTest {
+        val parameters = getMockParameters { builder ->
+            builder.addACAttribute(MockACAttribute.ScopeAddress("mock-scope-address"))
+        }
+        val mockScopeAttribute = getMockScopeAttribute()
+        every { parameters.acClient.queryAssetScopeAttributeByScopeAddress(any()) } returns mockScopeAttribute
+        coEvery { parameters.processor.retrieveAsset(any(), any(), any()) } returns "MOCK ASSET"
+        coEvery { parameters.processor.verifyAsset(any(), any(), any()) } throws IllegalStateException("MOCK: Failed to verify asset")
+        DefaultOnboardEventHandler.handleEvent(parameters)
+        assertTrue(
+            actual = parameters.verificationChannel.isEmpty,
+            message = "The verification channel should not receive any input",
+        )
+        assertLastEvent<VerifierEvent.OnboardEventFailedToVerifyAsset>(parameters) { (event, scopeAttribute, t) ->
+            assertEquals(
+                expected = parameters.event,
+                actual = event,
+                message = "Expected the event to include the classification event from the parameters",
+            )
+            assertEquals(
+                expected = mockScopeAttribute,
+                actual = scopeAttribute,
+                message = "Expected the event to include the retrieved scope attribute",
+            )
+            assertTrue(
+                actual = t is IllegalStateException,
+                message = "Expected the exception to be an IllegalStateException, but was ${t::class.simpleName}",
+            )
+            assertEquals(
+                expected = "MOCK: Failed to verify asset",
+                actual = t.message,
+                message = "Expected the exception to include the correct message",
+            )
+        }
+    }
+
+    @Test
+    fun testSuccessfulOnboardEventProcessing() = runTest {
+        val parameters = getMockParameters { builder ->
+            builder.addACAttribute(MockACAttribute.ScopeAddress("mock-scope-address"))
+        }
+        val mockScopeAttribute = getMockScopeAttribute()
+        val mockVerification = AssetVerification(
+            message = "MOCK: Successful verification",
+            verifySuccess = true,
+        )
+        every { parameters.acClient.queryAssetScopeAttributeByScopeAddress(any()) } returns mockScopeAttribute
+        coEvery { parameters.processor.retrieveAsset(any(), any(), any()) } returns "MOCK ASSET"
+        coEvery { parameters.processor.verifyAsset(any(), any(), any()) } returns mockVerification
+        DefaultOnboardEventHandler.handleEvent(parameters)
+        assertLastEvent<OnboardEventPreVerifySend>(parameters) { (event, scopeAttribute, verification) ->
+            assertEquals(
+                expected = parameters.event,
+                actual = event,
+                message = "Expected the event to include the classification event from the parameters",
+            )
+            assertEquals(
+                expected = mockScopeAttribute,
+                actual = scopeAttribute,
+                message = "Expected the event to include the retrieved scope attribute",
+            )
+            assertEquals(
+                expected = mockVerification,
+                actual = verification,
+                message = "Expected the verification derived from the processor to be included in the event",
+            )
+        }
+        assertFalse(
+            actual = parameters.verificationChannel.isEmpty,
+            message = "A verification channel event should be sent",
+        )
+        val message = parameters.verificationChannel.receive()
+        assertEquals(
+            expected = parameters.event,
+            actual = message.event,
+            message = "The classification event should be included in the verification message",
+        )
+        assertEquals(
+            expected = mockScopeAttribute,
+            actual  = message.scopeAttribute,
+            message = "The scope attribute should be included in the verification message",
+        )
+        assertEquals(
+            expected = mockVerification,
+            actual = message.verification,
+            message = "The verification should be included in the verification message",
+        )
+        assertTrue(
+            actual = parameters.verificationChannel.isEmpty,
+            message = "There should be no more verification channel messages",
+        )
     }
 
     private fun getMockParameters(event: AssetClassificationEvent): EventHandlerParameters = EventHandlerParameters(
