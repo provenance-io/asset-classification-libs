@@ -1,5 +1,10 @@
 package io.provenance.classification.asset.verifier.provenance
 
+/**
+ * An enum representation of all events that the asset classification smart contract can emit.
+ *
+ * @param contractName The value emitted by the smart contract for this event type.
+ */
 enum class ACContractEvent(val contractName: String) {
     ADD_ASSET_DEFINITION("add_asset_definition"),
     ADD_ASSET_VERIFIER("add_asset_verifier"),
