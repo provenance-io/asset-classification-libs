@@ -128,10 +128,10 @@ class AssetClassificationEvent(
     }
 
     override fun toString(): String = "AssetClassificationEvent[" +
-            "eventType=$eventType, " +
-            "assetType=$assetType, " +
-            "scopeAddress=$scopeAddress, " +
-            "verifierAddress=$verifierAddress, " +
-            "scopeOwnerAddress=$scopeOwnerAddress, " +
-            "newValue=$newValue]"
+        "eventType=$eventType, " +
+        "assetType=$assetType, " +
+        "scopeAddress=$scopeAddress, " +
+        "verifierAddress=$verifierAddress, " +
+        "scopeOwnerAddress=$scopeOwnerAddress, " +
+        "newValue=$newValue]"
 }

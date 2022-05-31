@@ -1,9 +1,9 @@
 package io.provenance.classification.asset.client.client.base
 
-import io.provenance.classification.asset.client.domain.model.AssetDefinition
-import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
 import io.provenance.classification.asset.client.domain.model.ACContractState
 import io.provenance.classification.asset.client.domain.model.ACVersionInfo
+import io.provenance.classification.asset.client.domain.model.AssetDefinition
+import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
 import io.provenance.classification.asset.client.domain.model.QueryAssetDefinitionsResponse
 import java.util.UUID
 

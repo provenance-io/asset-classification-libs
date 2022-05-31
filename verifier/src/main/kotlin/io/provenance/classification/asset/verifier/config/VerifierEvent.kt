@@ -54,7 +54,7 @@ sealed interface VerifierEvent {
      * be null if the stream restarts before a block height can ever be stored, which will only happen if the processor
      * for blocks had never connected and found any data.
      */
-    data class StreamRestarted internal constructor(val restartHeight: Long?): VerifierEvent
+    data class StreamRestarted internal constructor(val restartHeight: Long?) : VerifierEvent
 
     /**
      * If the verifier is configured to not restart, this function will be called after the stream completes.  It
@@ -63,7 +63,7 @@ sealed interface VerifierEvent {
      * @param exitHeight The block height to which the stream had reached when the exit occurred.  This will only be
      * null if the stream exits before any blocks are processed.
      */
-    data class StreamExited internal constructor(val exitHeight: Long?): VerifierEvent
+    data class StreamExited internal constructor(val exitHeight: Long?) : VerifierEvent
 
     /**
      * When the client registers a new block height after iterating over encountered messages in its Flow, this function
@@ -182,7 +182,7 @@ sealed interface VerifierEvent {
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
         val verification: AssetVerificationResult,
-    ): VerifierEvent
+    ) : VerifierEvent
 
     /**
      * This event is emitted when an asset classification smart contract "verify asset" event is detected and its scope
@@ -325,7 +325,7 @@ sealed interface VerifierEvent {
         val event: AssetClassificationEvent,
         val eventType: ACContractEvent,
         val message: String = "Event does not contain a verifier address",
-    ): VerifierEvent
+    ) : VerifierEvent
 
     /**
      * Only process verifications that are targeted at the registered verifier account.  Other verifiers can be chosen,
@@ -344,7 +344,7 @@ sealed interface VerifierEvent {
         val eventType: ACContractEvent,
         val registeredVerifierAddress: String,
         val message: String = "Event is for a different verifier [${event.verifierAddress}] than the registered verifier account [$registeredVerifierAddress]",
-    ): VerifierEvent
+    ) : VerifierEvent
 
     /**
      * This event is emitted when an asset classification smart contract event is detected, but it does not contain the
@@ -418,7 +418,7 @@ sealed interface VerifierEvent {
  * allows the [VerifierClientConfig.Builder.addEventProcessor] function to infer the [VerifierEvent] that they refer to
  * and dynamically change the receiver of the input function.
  */
-sealed interface VerifierEventType<E: VerifierEvent> {
+sealed interface VerifierEventType<E : VerifierEvent> {
     /**
      * A shortcut to get the simple name of the class, which should always match its [VerifierEvent] counterpart,
      * ensuring that the [VerifierClientConfig.Builder.addEventProcessor] function does not create a bad link.
@@ -481,7 +481,7 @@ sealed interface VerifierEventType<E: VerifierEvent> {
      *
      * @param newHeight The new block height encountered by the client.
      */
-    object NewBlockHeightReceived: VerifierEventType<VerifierEvent.NewBlockHeightReceived>
+    object NewBlockHeightReceived : VerifierEventType<VerifierEvent.NewBlockHeightReceived>
 
     /**
      * This will be extremely common - we cannot filter events upfront in the event stream code, so this check
@@ -690,7 +690,6 @@ sealed interface VerifierEventType<E: VerifierEvent> {
      * @param message A message indicating the nature of the event.
      */
     object EventIgnoredDifferentVerifierAddress : VerifierEventType<VerifierEvent.EventIgnoredDifferentVerifierAddress>
-
 
     /**
      * This event is emitted when an asset classification smart contract event is detected, but it does not contain the

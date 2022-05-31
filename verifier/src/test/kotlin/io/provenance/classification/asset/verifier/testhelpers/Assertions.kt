@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 @ExperimentalCoroutinesApi
-suspend inline fun <reified T: VerifierEvent> assertNextEvent(
+suspend inline fun <reified T : VerifierEvent> assertNextEvent(
     parameters: EventHandlerParameters,
     assertions: (T) -> Unit = {},
 ) {
@@ -23,7 +23,7 @@ suspend inline fun <reified T: VerifierEvent> assertNextEvent(
 }
 
 @ExperimentalCoroutinesApi
-suspend inline fun <reified T: VerifierEvent> assertLastEvent(
+suspend inline fun <reified T : VerifierEvent> assertLastEvent(
     parameters: EventHandlerParameters,
     assertions: (T) -> Unit = {},
 ) {

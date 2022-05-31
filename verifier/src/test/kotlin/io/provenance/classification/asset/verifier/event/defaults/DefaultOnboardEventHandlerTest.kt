@@ -21,10 +21,10 @@ import io.provenance.classification.asset.verifier.testhelpers.getMockScopeAttri
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.Test
 
 @ExperimentalCoroutinesApi
 class DefaultOnboardEventHandlerTest {
@@ -294,7 +294,7 @@ class DefaultOnboardEventHandlerTest {
         )
         assertEquals(
             expected = mockScopeAttribute,
-            actual  = message.scopeAttribute,
+            actual = message.scopeAttribute,
             message = "The scope attribute should be included in the verification message",
         )
         assertEquals(

@@ -25,11 +25,13 @@ object DefaultVerifyAssetEventHandler : AssetClassificationEventHandler {
         }
         // Only process verifications that are targeted at the registered verifier account
         if (event.verifierAddress != parameters.verifierAccount.bech32Address) {
-            eventChannel.send(EventIgnoredDifferentVerifierAddress(
-                event = event,
-                eventType = this.eventType,
-                registeredVerifierAddress = verifierAccount.bech32Address
-            ))
+            eventChannel.send(
+                EventIgnoredDifferentVerifierAddress(
+                    event = event,
+                    eventType = this.eventType,
+                    registeredVerifierAddress = verifierAccount.bech32Address
+                )
+            )
             return
         }
         val scopeAddress = event.scopeAddress ?: run {

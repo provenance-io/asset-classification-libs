@@ -6,4 +6,4 @@ package io.provenance.classification.asset.client.domain
 data class NullContractResponseException(
     override val message: String,
     val t: Throwable? = null
-): Exception(message, t)
+) : Exception(message, t)

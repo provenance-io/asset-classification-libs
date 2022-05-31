@@ -71,7 +71,6 @@ class VerifierClient(private val config: VerifierClientConfig) {
         .also { startEventChannelReceiver() }
         .also { startVerificationReceiver() }
 
-
     fun stopVerifying() {
         jobs.cancelAndClearJobs()
         tracking.reset()

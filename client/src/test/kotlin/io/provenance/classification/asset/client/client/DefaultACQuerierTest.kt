@@ -303,7 +303,7 @@ class DefaultACQuerierTest {
             }
         }
 
-        fun <T: Any> mockQueryReturns(value: T) {
+        fun <T : Any> mockQueryReturns(value: T) {
             mockQuery { this returns QuerySmartContractStateResponse.newBuilder().setData(value.toJsonPayload()).build() }
         }
 
@@ -311,7 +311,7 @@ class DefaultACQuerierTest {
             mockQuery { this returns getNullContractResponse() }
         }
 
-        fun <T: Throwable> mockQueryThrows(t: T) {
+        fun <T : Throwable> mockQueryThrows(t: T) {
             mockQuery { this throws t }
         }
 

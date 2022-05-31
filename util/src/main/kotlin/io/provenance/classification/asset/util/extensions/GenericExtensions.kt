@@ -25,4 +25,3 @@ fun <T> T.wrapListAc(): List<T> = listOf(this)
 fun <T> T.wrapSetAc(): Set<T> = setOf(this)
 
 inline fun <reified T> T.wrapArrayAc(): Array<T> = arrayOf(this)
-

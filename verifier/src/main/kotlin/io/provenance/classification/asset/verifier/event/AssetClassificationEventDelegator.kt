@@ -44,7 +44,7 @@ class AssetClassificationEventDelegator internal constructor(
          * AssetClassificationEventDelegatorBuilder.  For instance, using AssetClassificationEventDelegator.defaultBuilder()
          * and then attempting to add a new implementation of the ONBOARD_ASSET event will throw an exception.
          */
-        fun <T: AssetClassificationEventHandler> registerEventHandler(handler: T) = apply {
+        fun <T : AssetClassificationEventHandler> registerEventHandler(handler: T) = apply {
             check(handler.eventType !in eventHandlers.keys) {
                 "Attempted to register more than a single handler for type [${handler.eventType}]. Previously-registered instance name: ${eventHandlers[handler.eventType]!!::class.simpleName}"
             }
@@ -70,6 +70,6 @@ class AssetClassificationEventDelegator internal constructor(
     suspend fun delegateEvent(parameters: EventHandlerParameters) {
         eventHandlers[parameters.event.eventType]
             ?.handleEvent(parameters)
-            ?: run { parameters.eventChannel.send(EventIgnoredUnknownEvent(parameters.event))}
+            ?: run { parameters.eventChannel.send(EventIgnoredUnknownEvent(parameters.event)) }
     }
 }

@@ -2,17 +2,17 @@ package io.provenance.classification.asset.verifier.event.defaults
 
 import io.provenance.classification.asset.client.domain.model.AccessDefinitionType
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
+import io.provenance.classification.asset.verifier.client.VerificationMessage
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredDifferentVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAttribute
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredNoVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventFailedToRetrieveAsset
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventFailedToVerifyAsset
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredPreviouslyProcessed
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventPreVerifySend
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventHandler
 import io.provenance.classification.asset.verifier.event.EventHandlerParameters
-import io.provenance.classification.asset.verifier.client.VerificationMessage
-import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredDifferentVerifierAddress
-import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredNoVerifierAddress
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 
 object DefaultOnboardEventHandler : AssetClassificationEventHandler {
@@ -29,11 +29,13 @@ object DefaultOnboardEventHandler : AssetClassificationEventHandler {
         }
         // Only process verifications that are targeted at the registered verifier account
         if (event.verifierAddress != parameters.verifierAccount.bech32Address) {
-            eventChannel.send(EventIgnoredDifferentVerifierAddress(
-                event = event,
-                eventType = this.eventType,
-                registeredVerifierAddress = verifierAccount.bech32Address
-            ))
+            eventChannel.send(
+                EventIgnoredDifferentVerifierAddress(
+                    event = event,
+                    eventType = this.eventType,
+                    registeredVerifierAddress = verifierAccount.bech32Address
+                )
+            )
             return
         }
         val scopeAddress = event.scopeAddress ?: run {
@@ -71,11 +73,11 @@ object DefaultOnboardEventHandler : AssetClassificationEventHandler {
         }
         val targetRoutes = scopeAttribute.accessDefinitions.singleOrNull { it.definitionType == AccessDefinitionType.REQUESTOR }
             ?.accessRoutes
-        // Provide an empty list if no access routes were defined by the requestor
+            // Provide an empty list if no access routes were defined by the requestor
             ?: emptyList()
         val asset = try {
             processor.retrieveAsset(event, scopeAttribute, targetRoutes)
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             eventChannel.send(
                 OnboardEventFailedToRetrieveAsset(
                     event = event,

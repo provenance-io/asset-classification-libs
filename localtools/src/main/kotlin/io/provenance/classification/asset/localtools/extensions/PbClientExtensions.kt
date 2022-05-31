@@ -55,4 +55,3 @@ fun PbClient.broadcastTxAc(
         throw IllegalStateException("Bad response code from transaction${if (printRawLogOnFailure) ". Log: ${response.txResponse.rawLog}" else ""}")
     }
 }
-

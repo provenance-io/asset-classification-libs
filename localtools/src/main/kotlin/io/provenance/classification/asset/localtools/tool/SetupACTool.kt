@@ -28,7 +28,6 @@ import io.provenance.name.v1.MsgBindNameRequest
 import io.provenance.name.v1.NameRecord
 import io.provenance.scope.util.toByteString
 import io.provenance.spec.AssetSpecifications
-import java.math.BigDecimal
 import java.net.URL
 
 object SetupACTool {
@@ -153,7 +152,7 @@ object SetupACTool {
                 ).toAdd(),
                 signerAddress = config.contractAdminAccount.bech32Address,
             )
-            config.logger("Generating bind name message of type [${specType}.asset] to contract address [$contractAddress] for future attribute writes")
+            config.logger("Generating bind name message of type [$specType.asset] to contract address [$contractAddress] for future attribute writes")
             messages += MsgBindNameRequest.newBuilder().also { bindName ->
                 bindName.parent = NameRecord.newBuilder().also { nameRecord ->
                     nameRecord.name = "asset"

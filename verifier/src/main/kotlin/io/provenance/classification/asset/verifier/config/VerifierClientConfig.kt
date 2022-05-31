@@ -6,7 +6,6 @@ import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
 import io.provenance.classification.asset.verifier.client.VerificationMessage
 import io.provenance.classification.asset.verifier.client.VerifierClient
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventDelegator
-import io.provenance.classification.asset.verifier.event.AssetClassificationEventDelegator.AssetClassificationEventDelegatorBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -127,7 +126,7 @@ class VerifierClientConfig private constructor(
          * when various things occur in the VerifierClient.  See the VerifierEvent class for more details on each event.
          */
         @Suppress("UNCHECKED_CAST")
-        fun <E: VerifierEvent> addEventProcessor(eventType: VerifierEventType<E>, processor: suspend (E) -> Unit) = apply {
+        fun <E : VerifierEvent> addEventProcessor(eventType: VerifierEventType<E>, processor: suspend (E) -> Unit) = apply {
             val eventTypeName = eventType.getEventTypeName()
             check(!eventProcessors.containsKey(eventTypeName)) { "An event of type [$eventTypeName] has already been added" }
             eventProcessors += eventTypeName to processor as suspend (VerifierEvent) -> Unit
