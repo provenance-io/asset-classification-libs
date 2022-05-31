@@ -91,6 +91,7 @@ class AssetClassificationEvent(
     val verifierAddress: String? by lazy { this.getEventStringValue(ACContractKey.VERIFIER_ADDRESS) }
     val scopeOwnerAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_OWNER_ADDRESS) }
     val newValue: String? by lazy { this.getEventStringValue(ACContractKey.NEW_VALUE) }
+    val additionalMetadata: String? by lazy { this.getEventStringValue(ACContractKey.ADDITIONAL_METADATA) }
 
     private data class TxAttribute(val key: String, val value: String) {
         companion object {

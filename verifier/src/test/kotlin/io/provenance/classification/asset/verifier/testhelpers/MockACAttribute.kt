@@ -39,4 +39,9 @@ sealed interface MockACAttribute {
         override val key: String = ACContractKey.NEW_VALUE.eventName
         override val value: String = newValue
     }
+
+    class AdditionalMetadata(additionalMetadata: String) : MockACAttribute {
+        override val key: String = ACContractKey.ADDITIONAL_METADATA.eventName
+        override val value: String = additionalMetadata
+    }
 }

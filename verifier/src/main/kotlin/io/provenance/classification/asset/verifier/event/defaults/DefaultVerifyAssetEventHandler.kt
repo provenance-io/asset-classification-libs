@@ -1,8 +1,10 @@
 package io.provenance.classification.asset.verifier.event.defaults
 
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredDifferentVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAttribute
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredNoVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventFailedOnboardingStatusStillPending
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventSuccessful
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventHandler
@@ -13,8 +15,23 @@ object DefaultVerifyAssetEventHandler : AssetClassificationEventHandler {
     override val eventType: ACContractEvent = ACContractEvent.VERIFY_ASSET
 
     override suspend fun handleEvent(parameters: EventHandlerParameters) {
-        val (event, acClient, _, _, eventChannel) = parameters
+        val (event, acClient, verifierAccount, _, _, eventChannel) = parameters
         val messagePrefix = "[VERIFY ASSET | Tx: ${event.sourceEvent.txHash} | Asset ${event.scopeAddress}"
+        // This will commonly happen - the contract emits events that don't target the verifier at all, but they'll
+        // still pass through here
+        if (event.verifierAddress == null) {
+            eventChannel.send(EventIgnoredNoVerifierAddress(event, this.eventType))
+            return
+        }
+        // Only process verifications that are targeted at the registered verifier account
+        if (event.verifierAddress != parameters.verifierAccount.bech32Address) {
+            eventChannel.send(EventIgnoredDifferentVerifierAddress(
+                event = event,
+                eventType = this.eventType,
+                registeredVerifierAddress = verifierAccount.bech32Address
+            ))
+            return
+        }
         val scopeAddress = event.scopeAddress ?: run {
             eventChannel.send(
                 EventIgnoredMissingScopeAddress(

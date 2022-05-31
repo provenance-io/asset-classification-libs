@@ -11,8 +11,6 @@ import io.provenance.classification.asset.verifier.config.StreamRestartMode
 import io.provenance.classification.asset.verifier.config.VerificationProcessor
 import io.provenance.classification.asset.verifier.config.VerifierClientConfig
 import io.provenance.classification.asset.verifier.config.VerifierEvent
-import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredDifferentVerifierAddress
-import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredNoVerifierAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredUnhandledEventType
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredUnknownWasmEvent
 import io.provenance.classification.asset.verifier.config.VerifierEvent.NewBlockHeightReceived
@@ -37,7 +35,6 @@ import io.provenance.eventstream.net.okHttpNetAdapter
 import io.provenance.eventstream.stream.flows.blockDataFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -148,26 +145,16 @@ class VerifierClient(private val config: VerifierClientConfig) {
             EventIgnoredUnknownWasmEvent(event).send()
             return
         }
-        // This will commonly happen - the contract emits events that don't target the verifier at all, but they'll
-        // still pass through here
-        if (event.verifierAddress == null) {
-            EventIgnoredNoVerifierAddress(event).send()
-            return
-        }
         // Only handle events that are relevant to the verifier
         if (event.eventType !in config.eventDelegator.getHandledEventTypes()) {
             EventIgnoredUnhandledEventType(event).send()
-            return
-        }
-        // Only process verifications that are targeted at the registered verifier account
-        if (event.verifierAddress != config.verifierAccount.bech32Address) {
-            EventIgnoredDifferentVerifierAddress(event, config.verifierAccount.bech32Address).send()
             return
         }
         config.eventDelegator.delegateEvent(
             parameters = EventHandlerParameters(
                 event = event,
                 acClient = config.acClient,
+                verifierAccount = config.verifierAccount,
                 processor = verifyProcessor,
                 verificationChannel = config.verificationChannel,
                 eventChannel = config.eventChannel,
@@ -175,7 +162,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
         )
     }
 
-    private fun startVerificationReceiver() {
+    internal fun startVerificationReceiver() {
         // Only one receiver channel needs to run at a time
         if (jobs.verificationSendJob != null) {
             return
@@ -242,7 +229,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
         }.also { jobs.verificationSendJob = it }
     }
 
-    private fun startEventChannelReceiver() {
+    internal fun startEventChannelReceiver() {
         // Only one receiver channel needs to run at a time
         if (jobs.eventHandlerJob != null) {
             return

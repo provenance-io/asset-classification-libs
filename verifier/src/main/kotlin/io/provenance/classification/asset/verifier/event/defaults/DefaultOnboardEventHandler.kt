@@ -11,14 +11,31 @@ import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardE
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventHandler
 import io.provenance.classification.asset.verifier.event.EventHandlerParameters
 import io.provenance.classification.asset.verifier.client.VerificationMessage
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredDifferentVerifierAddress
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredNoVerifierAddress
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 
 object DefaultOnboardEventHandler : AssetClassificationEventHandler {
     override val eventType: ACContractEvent = ACContractEvent.ONBOARD_ASSET
 
     override suspend fun handleEvent(parameters: EventHandlerParameters) {
-        val (event, acClient, processor, verificationChannel, eventChannel) = parameters
+        val (event, acClient, verifierAccount, processor, verificationChannel, eventChannel) = parameters
         val messagePrefix = "[ONBOARD_ASSET | Tx: ${event.sourceEvent.txHash} | Asset: ${event.scopeAddress}]:"
+        // This will commonly happen - the contract emits events that don't target the verifier at all, but they'll
+        // still pass through here
+        if (event.verifierAddress == null) {
+            eventChannel.send(EventIgnoredNoVerifierAddress(event, this.eventType))
+            return
+        }
+        // Only process verifications that are targeted at the registered verifier account
+        if (event.verifierAddress != parameters.verifierAccount.bech32Address) {
+            eventChannel.send(EventIgnoredDifferentVerifierAddress(
+                event = event,
+                eventType = this.eventType,
+                registeredVerifierAddress = verifierAccount.bech32Address
+            ))
+            return
+        }
         val scopeAddress = event.scopeAddress ?: run {
             eventChannel.send(
                 EventIgnoredMissingScopeAddress(

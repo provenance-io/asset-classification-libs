@@ -11,10 +11,11 @@ class AssetClassificationEventDelegator internal constructor(
     companion object {
         fun builder(): AssetClassificationEventDelegatorBuilder = AssetClassificationEventDelegatorBuilder()
 
-        fun default(): AssetClassificationEventDelegator = builder()
+        fun defaultBuilder(): AssetClassificationEventDelegatorBuilder = builder()
             .registerEventHandler(DefaultOnboardEventHandler)
             .registerEventHandler(DefaultVerifyAssetEventHandler)
-            .build()
+
+        fun default(): AssetClassificationEventDelegator = defaultBuilder().build()
     }
 
     class AssetClassificationEventDelegatorBuilder internal constructor() {

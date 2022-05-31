@@ -7,7 +7,10 @@ import io.provenance.classification.asset.client.domain.model.AssetOnboardingSta
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
 import io.provenance.classification.asset.client.domain.model.AssetVerificationResult
 import io.provenance.classification.asset.client.domain.model.VerifierDetail
+import io.provenance.classification.asset.util.enums.ProvenanceNetworkType
 import io.provenance.classification.asset.util.extensions.wrapListAc
+import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
+import io.provenance.hdwallet.bip39.MnemonicWords
 import io.provenance.scope.util.MetadataAddress
 import java.math.BigDecimal
 import java.util.UUID
@@ -44,4 +47,11 @@ fun getMockScopeAttribute(
         ).wrapListAc(),
         definitionType = AccessDefinitionType.REQUESTOR,
     ).wrapListAc(),
+)
+
+fun getMockAccountDetail(
+    mnemonic: String = MnemonicWords.generate().toString(),
+): ProvenanceAccountDetail = ProvenanceAccountDetail.fromMnemonic(
+    mnemonic = mnemonic,
+    networkType = ProvenanceNetworkType.TESTNET,
 )
