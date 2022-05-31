@@ -55,6 +55,7 @@ class AssetClassificationEvent(
                             },
                             fee = sourceTx.tx.authInfo.fee.amountList.firstOrNull()?.amount?.toLongOrNull(),
                             denom = sourceTx.tx.authInfo.fee.amountList.firstOrNull()?.denom,
+                            note = null,
                         ),
                         inputValuesEncoded = false,
                     )

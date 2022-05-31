@@ -1,7 +1,8 @@
 package io.provenance.classification.asset.verifier.config
 
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
-import io.provenance.classification.asset.verifier.client.AssetVerification
+import io.provenance.classification.asset.client.domain.model.AssetVerificationResult
+import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
 import io.provenance.eventstream.stream.clients.BlockData
 
@@ -148,36 +149,6 @@ sealed interface VerifierEvent {
     ) : VerifierEvent
 
     /**
-     * This event is emitted when an asset classification smart contract "onboard asset" event is detected, but it does
-     * not contain the expected scope address attribute.  This is an error case and indicates bad smart contract code.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     */
-    data class OnboardEventIgnoredMissingScopeAddress internal constructor(
-        val event: AssetClassificationEvent,
-        val message: String,
-    ) : VerifierEvent
-
-    /**
-     * This event is emitted when an asset classification smart contract "onboard asset" event is detected, but the scope
-     * that was onboarded does not yet have an AssetScopeAttribute on it.  This should only ever occur due to a
-     * blockchain error, or indicates a smart contract bug.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     * @param t The exception thrown when attempting to fetch the scope attribute from the smart contract.  Indicates
-     * the reason for the missing attribute.
-     */
-    data class OnboardEventIgnoredMissingScopeAttribute internal constructor(
-        val event: AssetClassificationEvent,
-        val message: String,
-        val t: Throwable,
-    ) : VerifierEvent
-
-    /**
      * This event is emitted when the verifier client picks up an event that has already completed being verified.  This
      * should only happen when events are re-run by crawling old data in the event stream.  This can safely be ignored
      * unless interactions need to occur when encountering a completed event.
@@ -240,38 +211,8 @@ sealed interface VerifierEvent {
     data class OnboardEventPreVerifySend internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerification,
+        val verification: AssetVerificationResult,
     ): VerifierEvent
-
-    /**
-     * This event is emitted when an asset classification smart contract "verify asset" event is detected, but it does
-     * not contain the expected scope address attribute.  This is an error case and indicates bad smart contract code.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     */
-    data class VerifyEventIgnoredMissingScopeAddress internal constructor(
-        val event: AssetClassificationEvent,
-        val message: String,
-    ) : VerifierEvent
-
-    /**
-     * This event is emitted when an asset classification smart contract "verify asset" event is detected, but the scope
-     * that was onboarded does not have an AssetScopeAttribute on it.  This is an error case and indicates bad smart
-     * contract code.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     * @param t The exception thrown when attempting to fetch the scope attribute from the smart contract.  Indicates
-     * the reason for the missing attribute.
-     */
-    data class VerifyEventIgnoredMissingScopeAttribute internal constructor(
-        val event: AssetClassificationEvent,
-        val message: String,
-        val t: Throwable,
-    ) : VerifierEvent
 
     /**
      * This event is emitted when an asset classification smart contract "verify asset" event is detected and its scope
@@ -323,7 +264,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendThrewException internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerification,
+        val verification: AssetVerificationResult,
         val message: String,
         val t: Throwable,
     ) : VerifierEvent
@@ -345,7 +286,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendSyncSequenceNumberFailed internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerification,
+        val verification: AssetVerificationResult,
         val message: String,
         val t: Throwable,
     ) : VerifierEvent
@@ -366,7 +307,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendSucceeded internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerification,
+        val verification: AssetVerificationResult,
     ) : VerifierEvent
 
     /**
@@ -387,7 +328,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendFailed internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerification,
+        val verification: AssetVerificationResult,
         val responseCode: Int,
         val rawLog: String,
     ) : VerifierEvent
@@ -402,6 +343,40 @@ sealed interface VerifierEvent {
     data class VerifyEventChannelThrewException internal constructor(val t: Throwable) : VerifierEvent
 
     /**
+     * This event is emitted when an asset classification smart contract event is detected, but it does not contain the
+     * expected scope address attribute.  This is an error case and indicates bad smart contract code.
+     *
+     * @param event All values from the encountered event that match the event attribute structure emitted by the
+     * asset classification smart contract.
+     * @param eventType The asset classification event type emitted that was missing its scope address.
+     * @param message A message indicating the nature of the event.
+     */
+    data class EventIgnoredMissingScopeAddress(
+        val event: AssetClassificationEvent,
+        val eventType: ACContractEvent,
+        val message: String,
+    ) : VerifierEvent
+
+    /**
+     * This event is emitted when an asset classification smart contract event is detected, but the scope
+     * that was onboarded does not yet have an AssetScopeAttribute on it.  This should only ever occur due to a
+     * blockchain error, or indicates a smart contract bug.
+     *
+     * @param event All values from the encountered event that match the event attribute structure emitted by the
+     * asset classification smart contract.
+     * @param eventType The type of smart contract event that was encountered when the scope attribute was missing.
+     * @param message A message indicating the nature of the event.
+     * @param t The exception thrown when attempting to fetch the scope attribute from the smart contract.  Indicates
+     * the reason for the missing attribute.
+     */
+    data class EventIgnoredMissingScopeAttribute(
+        val event: AssetClassificationEvent,
+        val eventType: ACContractEvent,
+        val message: String,
+        val t: Throwable,
+    ) : VerifierEvent
+
+    /**
      * This event is emitted when an event processor is registered in the VerifierClientConfig that can throw an exception.
      * The VerifierClient will catch any exception thrown by custom processor code and emit this error with the
      * exception thrown contained as `t`.  It is HIGHLY recommended that only safe code be run in the handler for this
@@ -411,10 +386,23 @@ sealed interface VerifierEvent {
      * an exception.
      * @param t The exception thrown during the event processor's invocation.
      */
-    data class CustomEventProcessorFailed internal constructor(
+    data class EventProcessorFailed internal constructor(
         val failedEventName: String,
         val t: Throwable,
     ) : VerifierEvent
+
+    /**
+     * This event allows an external consumer of this library to create their own event handlers with as many custom
+     * event types as they want.  It behaves differently in the event processing code, keying off of the [eventName]
+     * property, versus keying off of its class name.
+     *
+     * @param eventName The unique event type identifier key.  This value should be different for each custom event.
+     * It is recommended that an enum be used for each different custom event to ensure uniqueness, but this is entirely
+     * up to the consumer of the library to decide.
+     * @param eventBody Any T type that needs to be emitted in the event.  This will likely be a data class containing
+     * many additional fields.
+     */
+    data class CustomEvent<T>(val eventBody: T, val eventName: String) : VerifierEvent
 }
 
 /**
@@ -547,29 +535,6 @@ sealed interface VerifierEventType<E: VerifierEvent> {
     object EventIgnoredUnknownEvent : VerifierEventType<VerifierEvent.EventIgnoredUnknownEvent>
 
     /**
-     * This event is emitted when an asset classification smart contract "onboard asset" event is detected, but it does
-     * not contain the expected scope address attribute.  This is an error case and indicates bad smart contract code.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     */
-    object OnboardEventIgnoredMissingScopeAddress : VerifierEventType<VerifierEvent.OnboardEventIgnoredMissingScopeAddress>
-
-    /**
-     * This event is emitted when an asset classification smart contract "onboard asset" event is detected, but the scope
-     * that was onboarded does not yet have an AssetScopeAttribute on it.  This should only ever occur due to a
-     * blockchain error, or indicates a smart contract bug.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     * @param t The exception thrown when attempting to fetch the scope attribute from the smart contract.  Indicates
-     * the reason for the missing attribute.
-     */
-    object OnboardEventIgnoredMissingScopeAttribute : VerifierEventType<VerifierEvent.OnboardEventIgnoredMissingScopeAttribute>
-
-    /**
      * This event is emitted when the verifier client picks up an event that has already completed being verified.  This
      * should only happen when events are re-run by crawling old data in the event stream.  This can safely be ignored
      * unless interactions need to occur when encountering a completed event.
@@ -618,29 +583,6 @@ sealed interface VerifierEventType<E: VerifierEvent> {
      * asset.
      */
     object OnboardEventPreVerifySend : VerifierEventType<VerifierEvent.OnboardEventPreVerifySend>
-
-    /**
-     * This event is emitted when an asset classification smart contract "verify asset" event is detected, but it does
-     * not contain the expected scope address attribute.  This is an error case and indicates bad smart contract code.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     */
-    object VerifyEventIgnoredMissingScopeAddress : VerifierEventType<VerifierEvent.VerifyEventIgnoredMissingScopeAddress>
-
-    /**
-     * This event is emitted when an asset classification smart contract "verify asset" event is detected, but the scope
-     * that was onboarded does not have an AssetScopeAttribute on it.  This is an error case and indicates bad smart
-     * contract code.
-     *
-     * @param event All values from the encountered event that match the event attribute structure emitted by the
-     * asset classification smart contract.
-     * @param message A message indicating the nature of the event.
-     * @param t The exception thrown when attempting to fetch the scope attribute from the smart contract.  Indicates
-     * the reason for the missing attribute.
-     */
-    object VerifyEventIgnoredMissingScopeAttribute : VerifierEventType<VerifierEvent.VerifyEventIgnoredMissingScopeAttribute>
 
     /**
      * This event is emitted when an asset classification smart contract "verify asset" event is detected and its scope
@@ -742,6 +684,31 @@ sealed interface VerifierEventType<E: VerifierEvent> {
     object VerifyEventChannelThrewException : VerifierEventType<VerifierEvent.VerifyEventChannelThrewException>
 
     /**
+     * This event is emitted when an asset classification smart contract event is detected, but it does not contain the
+     * expected scope address attribute.  This is an error case and indicates bad smart contract code.
+     *
+     * @param event All values from the encountered event that match the event attribute structure emitted by the
+     * asset classification smart contract.
+     * @param eventType The asset classification event type emitted that was missing its scope address.
+     * @param message A message indicating the nature of the event.
+     */
+    object EventIgnoredMissingScopeAddress : VerifierEventType<VerifierEvent.EventIgnoredMissingScopeAddress>
+
+    /**
+     * This event is emitted when an asset classification smart contract event is detected, but the scope
+     * that was onboarded does not yet have an AssetScopeAttribute on it.  This should only ever occur due to a
+     * blockchain error, or indicates a smart contract bug.
+     *
+     * @param event All values from the encountered event that match the event attribute structure emitted by the
+     * asset classification smart contract.
+     * @param eventType The type of smart contract event that was encountered when the scope attribute was missing.
+     * @param message A message indicating the nature of the event.
+     * @param t The exception thrown when attempting to fetch the scope attribute from the smart contract.  Indicates
+     * the reason for the missing attribute.
+     */
+    object EventIgnoredMissingScopeAttribute : VerifierEventType<VerifierEvent.EventIgnoredMissingScopeAttribute>
+
+    /**
      * This event is emitted when an event processor is registered in the VerifierClientConfig that can throw an exception.
      * The VerifierClient will catch any exception thrown by custom processor code and emit this error with the
      * exception thrown contained as `t`.  It is HIGHLY recommended that only safe code be run in the handler for this
@@ -751,5 +718,20 @@ sealed interface VerifierEventType<E: VerifierEvent> {
      * an exception.
      * @param t The exception thrown during the event processor's invocation.
      */
-    object CustomEventProcessorFailed : VerifierEventType<VerifierEvent.CustomEventProcessorFailed>
+    object EventProcessorFailed : VerifierEventType<VerifierEvent.EventProcessorFailed>
+
+    /**
+     * This event allows an external consumer of this library to create their own event handlers with as many custom
+     * event types as they want.  It behaves differently in the event processing code, keying off of the [eventName]
+     * property, versus keying off of its class name.
+     *
+     * @param eventName The unique event type identifier key.  This value should be different for each custom event.
+     * It is recommended that an enum be used for each different custom event to ensure uniqueness, but this is entirely
+     * up to the consumer of the library to decide.
+     * @param eventBody Any T type that needs to be emitted in the event.  This will likely be a data class containing
+     * many additional fields.
+     */
+    class CustomEvent<T>(private val eventName: String) : VerifierEventType<VerifierEvent.CustomEvent<T>> {
+        override fun getEventTypeName(): String = eventName
+    }
 }

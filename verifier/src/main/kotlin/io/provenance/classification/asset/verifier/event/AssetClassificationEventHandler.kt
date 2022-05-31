@@ -1,6 +1,7 @@
 package io.provenance.classification.asset.verifier.event
 
 import io.provenance.classification.asset.client.client.base.ACClient
+import io.provenance.classification.asset.verifier.client.VerificationMessage
 import io.provenance.classification.asset.verifier.config.VerificationProcessor
 import io.provenance.classification.asset.verifier.config.VerifierEvent
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent

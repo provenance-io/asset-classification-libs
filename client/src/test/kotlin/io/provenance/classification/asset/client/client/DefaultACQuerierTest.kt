@@ -35,7 +35,7 @@ import kotlin.test.assertEquals
 
 class DefaultACQuerierTest {
     @Test
-    fun testQueryAssetDefinitionByAssetTypeOrNull() {
+    fun `test queryAssetDefinitionByAssetTypeOrNull`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do asset definition things"))
         assertThrows<IllegalStateException>("Expected an exception to be rethrown when requested") {
@@ -61,7 +61,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetDefinitionByAssetType() {
+    fun `test queryAssetDefinitionByAssetType`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do asset definition things"))
         assertThrows<IllegalStateException>("Expected an exception to be thrown when encountered") {
@@ -84,7 +84,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetDefinitionByScopeSpecAddressOrNull() {
+    fun `test queryAssetDefinitionByScopeSpecAddressOrNull`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do asset definition things"))
         assertThrows<IllegalStateException>("Expected an exception to be rethrown when requested") {
@@ -110,7 +110,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetDefinitionByScopeSpecAddress() {
+    fun `test queryAssetDefinitionByScopeSpecAddress`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do asset definition things"))
         assertThrows<IllegalStateException>("Expected an exception to be thrown when encountered") {
@@ -133,7 +133,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetDefinitions() {
+    fun `test queryAssetDefinitions`() {
         val suite = MockSuite.new()
         val definitions = QueryAssetDefinitionsResponse(
             assetDefinitions = listOf(
@@ -154,7 +154,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetScopeAttributeByAssetUuidOrNull() {
+    fun `test queryAssetScopeAttributeByAssetUuidOrNull`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do scope attribute things"))
         assertThrows<IllegalStateException>("Expected an exception to be rethrown when requested") {
@@ -180,7 +180,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetScopeAttributeByAssetUuid() {
+    fun `test queryAssetScopeAttributeByAssetUuid`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do scope attribute things"))
         assertThrows<IllegalStateException>("Expected an exception to be thrown when encountered") {
@@ -203,7 +203,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetScopeAttributeByScopeAddressOrNull() {
+    fun `test queryAssetScopeAttributeByScopeAddressOrNull`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do scope attribute things"))
         assertThrows<IllegalStateException>("Expected an exception to be rethrown when requested") {
@@ -229,7 +229,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryAssetScopeAttributeByScopeAddress() {
+    fun `test queryAssetScopeAttributeByScopeAddress`() {
         val suite = MockSuite.new()
         suite.mockQueryThrows(IllegalStateException("Failed to do scope attribute things"))
         assertThrows<IllegalStateException>("Expected an exception to be thrown when encountered") {
@@ -252,7 +252,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryContractState() {
+    fun `test queryContractState`() {
         val suite = MockSuite.new()
         val state = ACContractState(baseContractName = DEFAULT_CONTRACT_NAME, admin = "no-u")
         suite.mockQueryReturns(state)
@@ -267,7 +267,7 @@ class DefaultACQuerierTest {
     }
 
     @Test
-    fun testQueryContractVersion() {
+    fun `test queryContractVersion`() {
         val suite = MockSuite.new()
         val version = ACVersionInfo(contract = "asset-classification-smart-contract", version = "1.4.2.0")
         suite.mockQueryReturns(version)

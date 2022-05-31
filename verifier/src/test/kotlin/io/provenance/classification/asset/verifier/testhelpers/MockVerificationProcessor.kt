@@ -2,7 +2,7 @@ package io.provenance.classification.asset.verifier.testhelpers
 
 import io.provenance.classification.asset.client.domain.model.AccessRoute
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
-import io.provenance.classification.asset.verifier.client.AssetVerification
+import io.provenance.classification.asset.client.domain.model.AssetVerificationResult
 import io.provenance.classification.asset.verifier.config.VerificationProcessor
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
 
@@ -25,12 +25,12 @@ class MockVerificationProcessor : VerificationProcessor<String> {
         event: AssetClassificationEvent,
         scopeAttribute: AssetScopeAttribute,
         asset: String,
-    ): AssetVerification = if (errorOnVerifyAsset) {
+    ): AssetVerificationResult = if (errorOnVerifyAsset) {
         throw IllegalStateException("MOCK: Producing error as requested during verifyAsset")
     } else {
-        AssetVerification(
+        AssetVerificationResult(
             message = if (verifySuccess) "MOCK: Successful verification" else "MOCK: Failed verification",
-            verifySuccess = verifySuccess,
+            success = verifySuccess,
         )
     }
 

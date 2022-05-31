@@ -17,6 +17,7 @@ object MockTxEvent {
             private const val DEFAULT_EVENT_TYPE: String = "wasm"
             private const val DEFAULT_FEE_AMOUNT: Long = 0L
             private const val DEFAULT_DENOM: String = "nhash"
+            private const val DEFAULT_NOTE: String = "MOCKED TX"
         }
 
         private var blockHeight: Long? = null
@@ -26,6 +27,7 @@ object MockTxEvent {
         private var attributes: MutableList<Event> = mutableListOf()
         private var fee: Long? = null
         private var denom: String? = null
+        private var note: String? = null
 
         fun setBlockHeight(blockHeight: Long) = apply { this.blockHeight = blockHeight }
         fun setBlockDateTime(blockDateTime: OffsetDateTime) = apply { this.blockDateTime = blockDateTime }
@@ -36,15 +38,17 @@ object MockTxEvent {
         fun addACAttribute(attribute: MockACAttribute) = apply { this.attributes.add(attribute.toAttribute()) }
         fun setFee(fee: Long) = apply { this.fee = fee }
         fun setDenom(denom: String) = apply { this.denom = denom }
+        fun setNote(note: String) = apply { this.note = note }
 
         fun build(): TxEvent = TxEvent(
             blockHeight = blockHeight ?: DEFAULT_BLOCK_HEIGHT,
             blockDateTime = blockDateTime ?: OffsetDateTime.now(),
             txHash = txHash ?: UUID.randomUUID().toString().toByteArray().toHexString(),
             eventType = eventType ?: DEFAULT_EVENT_TYPE,
-            attributes = attributes ?: emptyList(),
+            attributes = attributes,
             fee = fee ?: DEFAULT_FEE_AMOUNT,
             denom = denom ?: DEFAULT_DENOM,
+            note = note ?: DEFAULT_NOTE,
         )
 
         fun buildACEvent(): AssetClassificationEvent = AssetClassificationEvent(

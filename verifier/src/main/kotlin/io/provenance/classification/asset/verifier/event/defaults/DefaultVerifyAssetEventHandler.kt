@@ -1,9 +1,9 @@
 package io.provenance.classification.asset.verifier.event.defaults
 
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAddress
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAttribute
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventFailedOnboardingStatusStillPending
-import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventIgnoredMissingScopeAddress
-import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventIgnoredMissingScopeAttribute
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventSuccessful
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventHandler
 import io.provenance.classification.asset.verifier.event.EventHandlerParameters
@@ -17,8 +17,9 @@ object DefaultVerifyAssetEventHandler : AssetClassificationEventHandler {
         val messagePrefix = "[VERIFY ASSET | Tx: ${event.sourceEvent.txHash} | Asset ${event.scopeAddress}"
         val scopeAddress = event.scopeAddress ?: run {
             eventChannel.send(
-                VerifyEventIgnoredMissingScopeAddress(
+                EventIgnoredMissingScopeAddress(
                     event = event,
+                    eventType = this.eventType,
                     message = "$messagePrefix Expected the verify asset event to include a scope address, but it was missing",
                 )
             )
@@ -28,8 +29,9 @@ object DefaultVerifyAssetEventHandler : AssetClassificationEventHandler {
             acClient.queryAssetScopeAttributeByScopeAddress(scopeAddress)
         } catch (t: Throwable) {
             eventChannel.send(
-                VerifyEventIgnoredMissingScopeAttribute(
+                EventIgnoredMissingScopeAttribute(
                     event = event,
+                    eventType = this.eventType,
                     message = "$messagePrefix Intercepted verification did not point to a scope with a scope attribute",
                     t = t,
                 )

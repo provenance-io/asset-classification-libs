@@ -3,11 +3,13 @@ package io.provenance.classification.asset.verifier.config
 import io.provenance.classification.asset.client.client.base.ACClient
 import io.provenance.classification.asset.util.extensions.elvisAc
 import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
+import io.provenance.classification.asset.verifier.client.VerificationMessage
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventDelegator
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventDelegator.AssetClassificationEventDelegatorBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.channels.Channel
 import java.net.URI
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
@@ -20,6 +22,8 @@ class VerifierClientConfig private constructor(
     val verificationProcessor: VerificationProcessor<*>,
     val eventStreamNode: URI,
     val streamRestartMode: StreamRestartMode,
+    val verificationChannel: Channel<VerificationMessage>,
+    val eventChannel: Channel<VerifierEvent>,
     val eventDelegator: AssetClassificationEventDelegator,
     val eventProcessors: Map<String, suspend (VerifierEvent) -> Unit>,
 ) {
@@ -40,6 +44,8 @@ class VerifierClientConfig private constructor(
         private var eventStreamNode: URI? = null
         private var startingBlockHeight: Long? = null
         private var streamRestartMode: StreamRestartMode? = null
+        private var verificationChannel: Channel<VerificationMessage>? = null
+        private var eventChannel: Channel<VerifierEvent>? = null
         private var coroutineScopeConfig: VerifierCoroutineScopeConfig? = null
         private var eventDelegator: AssetClassificationEventDelegator? = null
         private val eventProcessors: MutableMap<String, suspend (VerifierEvent) -> Unit> = mutableMapOf()
@@ -49,6 +55,10 @@ class VerifierClientConfig private constructor(
         fun withStartingBlockHeight(height: Long) = apply { startingBlockHeight = height }
 
         fun withStreamRestartMode(mode: StreamRestartMode) = apply { streamRestartMode = mode }
+
+        fun withVerificationChannel(channel: Channel<VerificationMessage>) = apply { verificationChannel = channel }
+
+        fun withEventChannel(channel: Channel<VerifierEvent>) = apply { eventChannel = channel }
 
         fun withCoroutineScope(config: VerifierCoroutineScopeConfig) = apply { coroutineScopeConfig = config }
 
@@ -64,7 +74,9 @@ class VerifierClientConfig private constructor(
         // cast will always succeed, despite compiler anger
         @Suppress("UNCHECKED_CAST")
         fun <E: VerifierEvent> addEventProcessor(eventType: VerifierEventType<E>, processor: suspend (E) -> Unit) = apply {
-            eventProcessors += eventType.getEventTypeName() to processor as suspend (VerifierEvent) -> Unit
+            val eventTypeName = eventType.getEventTypeName()
+            check(!eventProcessors.containsKey(eventTypeName)) { "An event of type [$eventTypeName] has already been added" }
+            eventProcessors += eventTypeName to processor as suspend (VerifierEvent) -> Unit
         }
 
         fun build(): VerifierClientConfig = VerifierClientConfig(
@@ -74,6 +86,8 @@ class VerifierClientConfig private constructor(
             verificationProcessor = verificationProcessor,
             eventStreamNode = eventStreamNode ?: URI("ws://localhost:26657"),
             streamRestartMode = streamRestartMode ?: StreamRestartMode.On(),
+            verificationChannel = verificationChannel ?: Channel(capacity = Channel.BUFFERED),
+            eventChannel = eventChannel ?: Channel(capacity = Channel.BUFFERED),
             eventDelegator = eventDelegator ?: AssetClassificationEventDelegator.default(),
             eventProcessors = eventProcessors,
         )

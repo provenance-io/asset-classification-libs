@@ -2,15 +2,15 @@ package io.provenance.classification.asset.verifier.event.defaults
 
 import io.provenance.classification.asset.client.domain.model.AccessDefinitionType
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAddress
+import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAttribute
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventFailedToRetrieveAsset
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventFailedToVerifyAsset
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredMissingScopeAddress
-import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredMissingScopeAttribute
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventIgnoredPreviouslyProcessed
 import io.provenance.classification.asset.verifier.config.VerifierEvent.OnboardEventPreVerifySend
 import io.provenance.classification.asset.verifier.event.AssetClassificationEventHandler
 import io.provenance.classification.asset.verifier.event.EventHandlerParameters
-import io.provenance.classification.asset.verifier.event.VerificationMessage
+import io.provenance.classification.asset.verifier.client.VerificationMessage
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 
 object DefaultOnboardEventHandler : AssetClassificationEventHandler {
@@ -21,8 +21,9 @@ object DefaultOnboardEventHandler : AssetClassificationEventHandler {
         val messagePrefix = "[ONBOARD_ASSET | Tx: ${event.sourceEvent.txHash} | Asset: ${event.scopeAddress}]:"
         val scopeAddress = event.scopeAddress ?: run {
             eventChannel.send(
-                OnboardEventIgnoredMissingScopeAddress(
+                EventIgnoredMissingScopeAddress(
                     event = event,
+                    eventType = this.eventType,
                     message = "$messagePrefix Expected the onboard asset event to include a scope address, but it was missing",
                 )
             )
@@ -32,8 +33,9 @@ object DefaultOnboardEventHandler : AssetClassificationEventHandler {
             acClient.queryAssetScopeAttributeByScopeAddress(scopeAddress)
         } catch (t: Throwable) {
             eventChannel.send(
-                OnboardEventIgnoredMissingScopeAttribute(
+                EventIgnoredMissingScopeAttribute(
                     event = event,
+                    eventType = this.eventType,
                     message = "$messagePrefix Intercepted onboard asset did not point to a scope with a scope attribute",
                     t = t,
                 )

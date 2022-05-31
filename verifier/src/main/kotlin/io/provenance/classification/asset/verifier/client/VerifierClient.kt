@@ -28,9 +28,7 @@ import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyAs
 import io.provenance.classification.asset.verifier.config.VerifierEvent.VerifyEventChannelThrewException
 import io.provenance.classification.asset.verifier.config.VerifierEventType
 import io.provenance.classification.asset.verifier.event.EventHandlerParameters
-import io.provenance.classification.asset.verifier.event.VerificationMessage
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
-import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 import io.provenance.client.grpc.PbClient
 import io.provenance.client.protobuf.extensions.getBaseAccount
 import io.provenance.client.protobuf.extensions.getTx
@@ -55,8 +53,6 @@ class VerifierClient(private val config: VerifierClientConfig) {
     private val signer = AccountSigner.fromAccountDetail(config.verifierAccount)
     private val decoderAdapter = moshiDecoderAdapter()
     private var jobs = VerifierJobs()
-    private val verificationChannel = Channel<VerificationMessage>(capacity = Channel.BUFFERED)
-    private val eventChannel = Channel<VerifierEvent>(capacity = Channel.BUFFERED)
     private val tracking: AccountTrackingDetail =
         AccountTrackingDetail.lookup(config.acClient.pbClient, config.verifierAccount.bech32Address)
 
@@ -145,7 +141,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
         latestHeight
     }
 
-    private suspend fun handleEvent(event: AssetClassificationEvent) {
+    internal suspend fun handleEvent(event: AssetClassificationEvent) {
         // This will be extremely common - we cannot filter events upfront in the event stream code, so this check
         // throws away everything not emitted by the asset classification smart contract
         if (event.eventType == null) {
@@ -173,8 +169,8 @@ class VerifierClient(private val config: VerifierClientConfig) {
                 event = event,
                 acClient = config.acClient,
                 processor = verifyProcessor,
-                verificationChannel = verificationChannel,
-                eventChannel = eventChannel,
+                verificationChannel = config.verificationChannel,
+                eventChannel = config.eventChannel,
             )
         )
     }
@@ -186,13 +182,13 @@ class VerifierClient(private val config: VerifierClientConfig) {
         }
         config.coroutineScope.launch {
             // A for-loop over a channel will infinitely iterate
-            for (message in verificationChannel) {
+            for (message in config.verificationChannel) {
                 try {
                     val response = try {
                         config.acClient.verifyAsset(
                             execute = VerifyAssetExecute.withScopeAddress(
                                 scopeAddress = message.scopeAttribute.scopeAddress,
-                                success = message.verification.verifySuccess,
+                                success = message.verification.success,
                                 message = message.verification.message,
                             ),
                             signer = signer,
@@ -236,7 +232,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
                                 verification = message.verification,
                                 responseCode = response.txResponse.code,
                                 rawLog = response.txResponse.rawLog,
-                            )
+                            ).send()
                         }
                     }
                 } catch (t: Throwable) {
@@ -253,13 +249,13 @@ class VerifierClient(private val config: VerifierClientConfig) {
         }
         config.coroutineScope.launch {
             // A for-loop over a channel will infinitely iterate
-            for (event in eventChannel) {
+            for (event in config.eventChannel) {
                 try {
                     config.eventProcessors[event.getEventTypeName()]?.invoke(event)
                 } catch (t: Throwable) {
                     try {
-                        config.eventProcessors[VerifierEventType.CustomEventProcessorFailed.getEventTypeName()]
-                            ?.invoke(VerifierEvent.CustomEventProcessorFailed(failedEventName = event.getEventTypeName(), t = t))
+                        config.eventProcessors[VerifierEventType.EventProcessorFailed.getEventTypeName()]
+                            ?.invoke(VerifierEvent.EventProcessorFailed(failedEventName = event.getEventTypeName(), t = t))
                     } catch (t: Throwable) {
                         // Worst case scenario - bad event with bad custom event handler.  This just gets silently
                         // ignored because there's nothing that can be done.
@@ -270,14 +266,9 @@ class VerifierClient(private val config: VerifierClientConfig) {
     }
 
     private suspend fun VerifierEvent.send() {
-        eventChannel.send(this)
+        config.eventChannel.send(this)
     }
 }
-
-data class AssetVerification(
-    val message: String,
-    val verifySuccess: Boolean,
-)
 
 private data class VerifierJobs(
     var processorJob: Job? = null,
