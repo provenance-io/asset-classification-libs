@@ -16,13 +16,14 @@ sealed class ContractIdentifier {
     /**
      * A direct reference to the contract's bech32 address.
      */
-    class Address(val contractAddress: String): ContractIdentifier()
+    class Address(val contractAddress: String) : ContractIdentifier()
 
     fun resolveAddress(pbClient: PbClient): String = when (this) {
-        is Name -> pbClient
-            .nameClient
-            .resolve(QueryResolveRequest.newBuilder().setName(contractName).build())
-            .address
+        is Name ->
+            pbClient
+                .nameClient
+                .resolve(QueryResolveRequest.newBuilder().setName(contractName).build())
+                .address
         is Address -> contractAddress
     }
 }

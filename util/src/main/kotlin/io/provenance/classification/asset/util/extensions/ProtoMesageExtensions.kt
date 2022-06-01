@@ -7,7 +7,7 @@ import com.google.protobuf.MessageOrBuilder
  * All extensions in this library are suffixed with "Ac" to ensure they do not overlap with other libraries' extensions.
  */
 
-inline fun <reified T: Message> MessageOrBuilder.buildDynamicAc(): T = try {
+inline fun <reified T : Message> MessageOrBuilder.buildDynamicAc(): T = try {
     if (this is Message.Builder) {
         this.build() as T
     } else {
@@ -17,7 +17,7 @@ inline fun <reified T: Message> MessageOrBuilder.buildDynamicAc(): T = try {
     throw IllegalArgumentException("Failed to build Message type [${this::class.qualifiedName}]", e)
 }
 
-inline fun <reified T: Message.Builder> MessageOrBuilder.toBuilderDynamicAc(): T = try {
+inline fun <reified T : Message.Builder> MessageOrBuilder.toBuilderDynamicAc(): T = try {
     if (this is Message) {
         this.toBuilder() as T
     } else {

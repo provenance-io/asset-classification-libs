@@ -6,12 +6,12 @@ grpc = "1.46.0"
 jackson = "2.13.2"
 jacksonProtobuf = "0.9.12"
 kotlin = "1.6.21"
-kotlinCoroutines = "1.6.1"
+kotlinCoroutines = "1.6.2"
 mockk = "1.12.4"
 okHttp = "4.9.3"
 protobuf = "3.20.1"
 provenanceClient = "1.1.1"
-provenanceEventStream = "0.6.0"
+provenanceEventStream = "0.6.3"
 provenanceHdWallet = "0.1.15"
 provenanceProto = "1.9.0"
 provenanceScope = "0.5.1"
@@ -24,6 +24,7 @@ coroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ver
 coroutinesCoreJvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinCoroutines" }
 coroutinesJdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlinCoroutines" }
 coroutinesReactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinCoroutines" }
+coroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }
 feignJackson = { module = "io.github.openfeign:feign-jackson", version.ref = "feign" }
 grpcNettyShaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpcProtobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }

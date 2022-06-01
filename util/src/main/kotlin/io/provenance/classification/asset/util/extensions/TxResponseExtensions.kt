@@ -21,5 +21,3 @@ fun TxResponse.toProvenanceTxEventsAc(): List<ProvenanceTxEvents> = if (this.cod
 } else {
     OBJECT_MAPPER.readValue(this.rawLog, object : TypeReference<List<ProvenanceTxEvents>>() {})
 }
-
-

@@ -18,7 +18,7 @@ class ACMetadataKeyUtilTest {
     }
 
     @Test
-    fun testKeyUtilProducesUsableOutput() {
+    fun `test util produces usable output`() {
         val mnemonic = "surge update round quantum script shed tissue maple minimum raw movie below prevent appear dice bullet pyramid tragic glue globe egg object era safe"
         // This uses wallet signer to verify that the correct address will be generated
         val addressFromWalletSigner = fromMnemonic(

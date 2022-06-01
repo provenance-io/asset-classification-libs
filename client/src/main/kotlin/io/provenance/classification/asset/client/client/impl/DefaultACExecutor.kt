@@ -4,20 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import cosmos.base.v1beta1.CoinOuterClass.Coin
 import cosmos.tx.v1beta1.ServiceOuterClass.BroadcastTxResponse
 import cosmwasm.wasm.v1.Tx.MsgExecuteContract
+import io.provenance.classification.asset.client.client.base.ACExecutor
+import io.provenance.classification.asset.client.client.base.ACQuerier
+import io.provenance.classification.asset.client.client.base.BroadcastOptions
 import io.provenance.classification.asset.client.domain.execute.AddAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.AddAssetVerifierExecute
+import io.provenance.classification.asset.client.domain.execute.BindContractAliasExecute
+import io.provenance.classification.asset.client.domain.execute.DeleteAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.OnboardAssetExecute
 import io.provenance.classification.asset.client.domain.execute.ToggleAssetDefinitionExecute
+import io.provenance.classification.asset.client.domain.execute.UpdateAccessRoutesExecute
 import io.provenance.classification.asset.client.domain.execute.UpdateAssetDefinitionExecute
 import io.provenance.classification.asset.client.domain.execute.UpdateAssetVerifierExecute
 import io.provenance.classification.asset.client.domain.execute.VerifyAssetExecute
 import io.provenance.classification.asset.client.domain.execute.base.ContractExecute
-import io.provenance.classification.asset.client.client.base.ACExecutor
-import io.provenance.classification.asset.client.client.base.ACQuerier
-import io.provenance.classification.asset.client.client.base.BroadcastOptions
-import io.provenance.classification.asset.client.domain.execute.BindContractAliasExecute
-import io.provenance.classification.asset.client.domain.execute.DeleteAssetDefinitionExecute
-import io.provenance.classification.asset.client.domain.execute.UpdateAccessRoutesExecute
 import io.provenance.client.grpc.BaseReqSigner
 import io.provenance.client.grpc.PbClient
 import io.provenance.client.grpc.Signer
@@ -167,7 +167,7 @@ class DefaultACExecutor(
      * Constructs a generic [MsgExecuteContract] from a provided [ContractExecute] message, ensuring that the provided
      * address is the signer.
      */
-    private fun <T: ContractExecute> generateMsg(
+    private fun <T : ContractExecute> generateMsg(
         executeMsg: T,
         signerAddress: String,
         funds: Coin? = null,

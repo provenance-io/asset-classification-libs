@@ -12,10 +12,30 @@ import io.provenance.eventstream.stream.models.extensions.txEvents
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * A collection of all values that can be emitted by the asset classification smart contract in an event, parsed
+ * automatically from block data or manually-replicated events.
+ *
+ * @param sourceEvent The TxEvent that was used to build the inner values for this event.  Contains details about the
+ * Provenance Blockchain values, as well as the inner attributes emitted by the asset classification smart contract.
+ * @param inputValuesEncoded Denotes whether or not the key/value pairs in the blockchain attributes on the tx event
+ * are base64 encoded.  Values produced through the event stream are encoded, but manually generated values by the
+ * VerifierClient are not.
+ */
 class AssetClassificationEvent(
     val sourceEvent: TxEvent,
     private val inputValuesEncoded: Boolean,
 ) {
+    val eventType: ACContractEvent? by lazy {
+        this.getEventValue(ACContractKey.EVENT_TYPE) { ACContractEvent.forContractName(it) }
+    }
+    val assetType: String? by lazy { this.getEventStringValue(ACContractKey.ASSET_TYPE) }
+    val scopeAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_ADDRESS) }
+    val verifierAddress: String? by lazy { this.getEventStringValue(ACContractKey.VERIFIER_ADDRESS) }
+    val scopeOwnerAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_OWNER_ADDRESS) }
+    val newValue: String? by lazy { this.getEventStringValue(ACContractKey.NEW_VALUE) }
+    val additionalMetadata: String? by lazy { this.getEventStringValue(ACContractKey.ADDITIONAL_METADATA) }
+
     companion object {
         private const val WASM_EVENT_TYPE = "wasm"
 
@@ -55,6 +75,7 @@ class AssetClassificationEvent(
                             },
                             fee = sourceTx.tx.authInfo.fee.amountList.firstOrNull()?.amount?.toLongOrNull(),
                             denom = sourceTx.tx.authInfo.fee.amountList.firstOrNull()?.denom,
+                            note = null,
                         ),
                         inputValuesEncoded = false,
                     )
@@ -82,15 +103,6 @@ class AssetClassificationEvent(
         null
     }
 
-    val eventType: ACContractEvent? by lazy {
-        this.getEventValue(ACContractKey.EVENT_TYPE) { ACContractEvent.forContractName(it) }
-    }
-    val assetType: String? by lazy { this.getEventStringValue(ACContractKey.ASSET_TYPE) }
-    val scopeAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_ADDRESS) }
-    val verifierAddress: String? by lazy { this.getEventStringValue(ACContractKey.VERIFIER_ADDRESS) }
-    val scopeOwnerAddress: String? by lazy { this.getEventStringValue(ACContractKey.SCOPE_OWNER_ADDRESS) }
-    val newValue: String? by lazy { this.getEventStringValue(ACContractKey.NEW_VALUE) }
-
     private data class TxAttribute(val key: String, val value: String) {
         companion object {
             fun fromEventOrNull(event: Event): TxAttribute? =
@@ -116,10 +128,10 @@ class AssetClassificationEvent(
     }
 
     override fun toString(): String = "AssetClassificationEvent[" +
-            "eventType=$eventType, " +
-            "assetType=$assetType, " +
-            "scopeAddress=$scopeAddress, " +
-            "verifierAddress=$verifierAddress, " +
-            "scopeOwnerAddress=$scopeOwnerAddress, " +
-            "newValue=$newValue]"
+        "eventType=$eventType, " +
+        "assetType=$assetType, " +
+        "scopeAddress=$scopeAddress, " +
+        "verifierAddress=$verifierAddress, " +
+        "scopeOwnerAddress=$scopeOwnerAddress, " +
+        "newValue=$newValue]"
 }

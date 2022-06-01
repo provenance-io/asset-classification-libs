@@ -2,20 +2,20 @@ package io.provenance.classification.asset.client.client.impl
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import cosmwasm.wasm.v1.QueryOuterClass
-import io.provenance.classification.asset.client.domain.model.AssetDefinition
-import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
+import io.provenance.classification.asset.client.client.base.ACQuerier
+import io.provenance.classification.asset.client.client.base.ContractIdentifier
+import io.provenance.classification.asset.client.domain.NullContractResponseException
 import io.provenance.classification.asset.client.domain.model.ACContractState
 import io.provenance.classification.asset.client.domain.model.ACVersionInfo
+import io.provenance.classification.asset.client.domain.model.AssetDefinition
+import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
+import io.provenance.classification.asset.client.domain.model.QueryAssetDefinitionsResponse
 import io.provenance.classification.asset.client.domain.query.QueryAssetDefinition
+import io.provenance.classification.asset.client.domain.query.QueryAssetDefinitions
 import io.provenance.classification.asset.client.domain.query.QueryAssetScopeAttribute
 import io.provenance.classification.asset.client.domain.query.QueryState
 import io.provenance.classification.asset.client.domain.query.QueryVersion
 import io.provenance.classification.asset.client.domain.query.base.ContractQuery
-import io.provenance.classification.asset.client.client.base.ACQuerier
-import io.provenance.classification.asset.client.client.base.ContractIdentifier
-import io.provenance.classification.asset.client.domain.NullContractResponseException
-import io.provenance.classification.asset.client.domain.model.QueryAssetDefinitionsResponse
-import io.provenance.classification.asset.client.domain.query.QueryAssetDefinitions
 import io.provenance.client.grpc.PbClient
 import io.provenance.client.protobuf.extensions.queryWasm
 import java.util.UUID
@@ -96,7 +96,7 @@ class DefaultACQuerier(
         doQueryOrNull(query)
             ?: throw NullContractResponseException("Received null response from asset classification smart contract for: ${query.queryFailureMessage}")
 
-    private inline fun <reified T: ContractQuery, reified U: Any> doQueryOrNull(query: T): U? =
+    private inline fun <reified T : ContractQuery, reified U : Any> doQueryOrNull(query: T): U? =
         pbClient.wasmClient.queryWasm(
             QueryOuterClass.QuerySmartContractStateRequest.newBuilder()
                 .setAddress(queryContractAddress())
@@ -109,7 +109,7 @@ class DefaultACQuerier(
      * Executes a provided [ContractQuery] against the Asset Classification smart contract with additional functionality
      * designed to return null responses when requested.
      */
-    private inline fun <reified T : ContractQuery, reified U: Any> doQueryOrNull(
+    private inline fun <reified T : ContractQuery, reified U : Any> doQueryOrNull(
         query: T,
         throwExceptions: Boolean,
     ): U? = try {

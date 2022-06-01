@@ -21,7 +21,7 @@ class AccountSigner(
     private val address: String,
     private val publicKey: PublicKey,
     private val privateKey: PrivateKey,
-): Signer {
+) : Signer {
     override fun address(): String = address
 
     override fun pubKey(): Keys.PubKey =

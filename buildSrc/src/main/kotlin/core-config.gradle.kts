@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm")
     id("java-library")
     id("com.adarshr.test-logger")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 group = rootProject.group
