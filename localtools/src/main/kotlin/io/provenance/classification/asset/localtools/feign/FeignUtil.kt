@@ -20,18 +20,20 @@ object FeignUtil {
     private const val READ_TIMEOUT_SECONDS: Long = 60L
 
     fun getBuilder(mapper: ObjectMapper = OBJECT_MAPPER): Feign.Builder = Feign.builder()
-        .options(Request.Options(
-            // Connection timeout
-            CONNECTION_TIMEOUT_SECONDS,
-            // Connection timeout unit
-            TimeUnit.SECONDS,
-            // Read timeout
-            READ_TIMEOUT_SECONDS,
-            // Read timeout unit
-            TimeUnit.SECONDS,
-            // Follow redirects
-            true,
-        ))
+        .options(
+            Request.Options(
+                // Connection timeout
+                CONNECTION_TIMEOUT_SECONDS,
+                // Connection timeout unit
+                TimeUnit.SECONDS,
+                // Read timeout
+                READ_TIMEOUT_SECONDS,
+                // Read timeout unit
+                TimeUnit.SECONDS,
+                // Follow redirects
+                true,
+            )
+        )
         .logLevel(Logger.Level.BASIC)
         .logger(FeignAppLogger())
         .retryer(Retryer.Default(500, RETRY_MS, 10))
