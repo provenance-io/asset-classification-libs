@@ -1,7 +1,7 @@
 package io.provenance.classification.asset.verifier.config
 
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
-import io.provenance.classification.asset.client.domain.model.AssetVerificationResult
+import io.provenance.classification.asset.verifier.client.AssetVerification
 import io.provenance.classification.asset.verifier.provenance.ACContractEvent
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
 import io.provenance.eventstream.stream.clients.BlockData
@@ -181,7 +181,7 @@ sealed interface VerifierEvent {
     data class OnboardEventPreVerifySend internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerificationResult,
+        val verification: AssetVerification,
     ) : VerifierEvent
 
     /**
@@ -234,7 +234,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendThrewException internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerificationResult,
+        val verification: AssetVerification,
         val message: String,
         val t: Throwable,
     ) : VerifierEvent
@@ -256,7 +256,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendSyncSequenceNumberFailed internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerificationResult,
+        val verification: AssetVerification,
         val message: String,
         val t: Throwable,
     ) : VerifierEvent
@@ -277,7 +277,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendSucceeded internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerificationResult,
+        val verification: AssetVerification,
     ) : VerifierEvent
 
     /**
@@ -298,7 +298,7 @@ sealed interface VerifierEvent {
     data class VerifyAssetSendFailed internal constructor(
         val event: AssetClassificationEvent,
         val scopeAttribute: AssetScopeAttribute,
-        val verification: AssetVerificationResult,
+        val verification: AssetVerification,
         val responseCode: Int,
         val rawLog: String,
     ) : VerifierEvent

@@ -2,7 +2,7 @@ package io.provenance.classification.asset.verifier.config
 
 import io.provenance.classification.asset.client.domain.model.AccessRoute
 import io.provenance.classification.asset.client.domain.model.AssetScopeAttribute
-import io.provenance.classification.asset.client.domain.model.AssetVerificationResult
+import io.provenance.classification.asset.verifier.client.AssetVerification
 import io.provenance.classification.asset.verifier.provenance.AssetClassificationEvent
 
 /**
@@ -33,5 +33,5 @@ interface VerificationProcessor<T> {
         event: AssetClassificationEvent,
         scopeAttribute: AssetScopeAttribute,
         asset: T,
-    ): AssetVerificationResult
+    ): AssetVerification
 }

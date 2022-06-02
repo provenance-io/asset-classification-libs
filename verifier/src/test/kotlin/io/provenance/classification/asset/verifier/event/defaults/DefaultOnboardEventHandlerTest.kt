@@ -4,8 +4,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.provenance.classification.asset.client.domain.model.AssetOnboardingStatus
-import io.provenance.classification.asset.client.domain.model.AssetVerificationResult
 import io.provenance.classification.asset.util.wallet.ProvenanceAccountDetail
+import io.provenance.classification.asset.verifier.client.AssetVerification
 import io.provenance.classification.asset.verifier.config.VerifierEvent
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAddress
 import io.provenance.classification.asset.verifier.config.VerifierEvent.EventIgnoredMissingScopeAttribute
@@ -257,7 +257,7 @@ class DefaultOnboardEventHandlerTest {
                 .addACAttribute(MockACAttribute.ScopeAddress("mock-scope-address"))
         }
         val mockScopeAttribute = getMockScopeAttribute()
-        val mockVerification = AssetVerificationResult(
+        val mockVerification = AssetVerification(
             message = "MOCK: Successful verification",
             success = true,
         )

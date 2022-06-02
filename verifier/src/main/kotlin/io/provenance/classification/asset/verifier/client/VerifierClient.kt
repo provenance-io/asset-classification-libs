@@ -176,6 +176,7 @@ class VerifierClient(private val config: VerifierClientConfig) {
                                 scopeAddress = message.scopeAttribute.scopeAddress,
                                 success = message.verification.success,
                                 message = message.verification.message,
+                                accessRoutes = message.verification.accessRoutes,
                             ),
                             signer = signer,
                             options = BroadcastOptions(
