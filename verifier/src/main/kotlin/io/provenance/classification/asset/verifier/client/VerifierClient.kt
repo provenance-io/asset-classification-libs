@@ -50,8 +50,12 @@ class VerifierClient(private val config: VerifierClientConfig) {
     private val signer = AccountSigner.fromAccountDetail(config.verifierAccount)
     private val decoderAdapter = moshiDecoderAdapter()
     private var jobs = VerifierJobs()
-    private val tracking: AccountTrackingDetail =
-        AccountTrackingDetail.lookup(config.acClient.pbClient, config.verifierAccount.bech32Address)
+    private val tracking: AccountTrackingDetail by lazy {
+        AccountTrackingDetail.lookup(
+            pbClient = config.acClient.pbClient,
+            address = config.verifierAccount.bech32Address,
+        )
+    }
 
     fun manualVerifyHash(txHash: String) {
         val tx = config.acClient.pbClient.cosmosService.getTx(txHash)
