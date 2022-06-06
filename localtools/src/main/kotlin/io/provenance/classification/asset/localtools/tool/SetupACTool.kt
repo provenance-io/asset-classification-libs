@@ -28,6 +28,7 @@ import io.provenance.name.v1.MsgBindNameRequest
 import io.provenance.name.v1.NameRecord
 import io.provenance.scope.util.toByteString
 import io.provenance.spec.AssetSpecifications
+import java.io.File
 import java.net.URL
 
 object SetupACTool {
@@ -38,29 +39,46 @@ object SetupACTool {
         setupAssetDefinitions(config, contractAddress)
     }
 
-    private fun downloadWasmBytes(config: SetupACToolConfig): ByteArray {
-        config.logger("Querying GitHub for a download link to the asset classification smart contract's WASM file")
-        val contractDownloadUrl = GitHubApiClient.new().let { client ->
-            // If the release tag is provided in the configuration, attempt to download that tag and throw an exception
-            // if the release is missing
-            config.contractReleaseTag?.let { tag ->
-                client.getReleaseByTag(
-                    organization = "provenance-io",
-                    repository = "asset-classification-smart-contract",
-                    tag = tag,
-                )
-            } ?: client.getLatestRelease(
-                organization = "provenance-io",
-                repository = "asset-classification-smart-contract",
-            )
-        }.assets
-            .singleOrNull { it.name == "asset_classification_smart_contract.wasm" }
-            .checkNotNullAc { "Expected an asset in the asset-classification-smart-contract repository to be the WASM file for the contract" }
-            .browserDownloadUrl
-            .let(::URL)
-        config.logger("Found WASM file at browser download link [$contractDownloadUrl]. Downloading...")
-        return contractDownloadUrl
-            .readBytes()
+    private fun getCompressedWasmBytes(config: SetupACToolConfig): ByteArray =
+        when (config.wasmLocation) {
+            is ContractWasmLocation.GitHub -> {
+                config.logger("Querying GitHub for a download link to the asset classification smart contract's WASM file")
+                GitHubApiClient.new().let { client ->
+                    // If the release tag is provided in the configuration, attempt to download that tag and throw an exception
+                    // if the release is missing
+                    config.wasmLocation.contractReleaseTag?.let { tag ->
+                        client.getReleaseByTag(
+                            organization = "provenance-io",
+                            repository = "asset-classification-smart-contract",
+                            tag = tag,
+                        )
+                    } ?: client.getLatestRelease(
+                        organization = "provenance-io",
+                        repository = "asset-classification-smart-contract",
+                    )
+                }.assets
+                    .singleOrNull { it.name == "asset_classification_smart_contract.wasm" }
+                    .checkNotNullAc { "Expected an asset in the asset-classification-smart-contract repository to be the WASM file for the contract" }
+                    .browserDownloadUrl
+                    .let(::URL)
+                    .also { config.logger("Found WASM file at browser download link [$it]. Downloading...") }
+                    .readBytes()
+                    .also { config.logger("Successfully downloaded wasm file and got uncompressed bytes of size [${it.size}]") }
+            }
+            is ContractWasmLocation.LocalFile -> {
+                when (config.wasmLocation) {
+                    is ContractWasmLocation.LocalFile.AbsolutePath -> {
+                        File(config.wasmLocation.absoluteFilePath)
+                    }
+                    is ContractWasmLocation.LocalFile.ProjectResource -> {
+                        ClassLoader.getSystemResource(config.wasmLocation.resourcePath).file.let(::File)
+                    }
+                }
+                    .also { config.logger("Loading asset classification smart contract bytes from local file [${it.absolutePath}]") }
+                    .readBytes()
+            }
+        }
+            .also { config.logger("GZipping wasm file bytes to compress initial size [${it.size}]") }
             // Incredibly important step: The upstream server requires that all stored wasm bytes are 500K or less, but
             // contracts themselves can be larger than that.  The server supports receipt of GZipped WASM payloads, so this
             // compression allows the Asset Classification Smart Contract (502Kish at the time of writing) to be uploaded
@@ -68,11 +86,10 @@ object SetupACTool {
             // Note: Future versions of wasmd (where this 500K check is made) support up to 800K, which should make this
             // compression irrelevant.
             .gzipAc()
-            .also { bytes -> println("Successfully downloaded and compressed wasm bytes. Total size: [${bytes.size}]") }
-    }
+            .also { bytes -> config.logger("Successfully compressed wasm bytes. Final byte size: [${bytes.size}]") }
 
     private fun downloadAndInstantiateSmartContract(config: SetupACToolConfig): String {
-        val wasmBytes = downloadWasmBytes(config)
+        val wasmBytes = getCompressedWasmBytes(config)
         config.logger("Storing code on Provenance Blockchain using address [${config.contractAdminAccount.bech32Address}] as the contract admin")
         val codeId = config.pbClient.broadcastTxAc(
             messages = Tx.MsgStoreCode.newBuilder().also { storeCode ->
@@ -198,8 +215,8 @@ object SetupACTool {
  * @param contractAliasNames These names will be registered with the smart contract as lookup aliases, allowing any
  * address to look up the contract's address by name resolution.  These names must branch from an unrestricted address
  * or the setup process will throw an exception.
- * @param contractReleaseTag An optional parameter that will allow the consumer to choose the version of the contract
- * to download.  If this value is not provided, the latest version will be downloaded.
+ * @param wasmLocation An optional parameter that will allow the consumer to decide where the smart contract instance comes
+ * from.  By default, the latest version of the smart contract will be downloaded from GitHub.
  * @param logger Defines how the process does logging.  The default is Disabled, which will not log anything unless an
  * exception occurs.
  */
@@ -209,7 +226,7 @@ data class SetupACToolConfig(
     val contractAdminAccount: ProvenanceAccountDetail,
     val verifierBech32Address: String,
     val contractAliasNames: List<String> = listOf("assetclassificationalias.pb", "testassets.pb"),
-    val contractReleaseTag: String? = null,
+    val wasmLocation: ContractWasmLocation = ContractWasmLocation.GitHub(),
     val logger: SetupACToolLogging = SetupACToolLogging.Disabled,
 )
 
@@ -238,4 +255,39 @@ sealed interface SetupACToolLogging {
     // like this:
     // SetupACToolLogging.Custom { message -> logger.info(message) }
     class Custom(override val log: (message: String) -> Unit) : SetupACToolLogging
+}
+
+/**
+ * Defines how to locate the Asset Classification smart contract WASM file.
+ */
+sealed interface ContractWasmLocation {
+    /**
+     * Denotes that the contract should be downloaded from GitHub.
+     *
+     * @param contractReleaseTag An optional parameter to specify a custom tag value.  If missing, the latest version
+     * will be downloaded.  Example of a valid provided value: v1.0.0
+     */
+    class GitHub(val contractReleaseTag: String? = null) : ContractWasmLocation
+
+    /**
+     * Denotes that the contract should be pulled from a location on the current machine.
+     */
+    sealed interface LocalFile : ContractWasmLocation {
+        /**
+         * Denotes that the contract will be pulled using an absolute file path to somewhere on the current system.
+         *
+         * @param absoluteFilePath The absolute file location.  Must use a path directly from the root directory.  This
+         * path should contain the file name.  Example: /Users/yourname/projects/my-app/src/main/resources/smart_contract.wasm
+         */
+        class AbsolutePath(val absoluteFilePath: String) : LocalFile
+
+        /**
+         * Denotes that the contract will be pulled from the current project's resource folder.  This assumes that the
+         * file is in the standard resource directory that are included in project compilation.
+         * Example: subfolder/smart_contract.wasm  OR smart_contract.wasm
+         *
+         * @param resourcePath
+         */
+        class ProjectResource(val resourcePath: String) : LocalFile
+    }
 }
