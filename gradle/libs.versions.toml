@@ -2,7 +2,7 @@
 assetSpec = "1.0.0"
 bouncyCastle = "1.70"
 feign = "11.8"
-grpc = "1.47.0"
+grpc = "1.48.0"
 jackson = "2.13.3"
 jacksonProtobuf = "0.9.12"
 kotlin = "1.6.21"
